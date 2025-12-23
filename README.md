@@ -1,78 +1,39 @@
 # SmartWrite Companion
 
-A powerful companion plugin for smart writing workflows in Obsidian.
+An intelligent writing assistant plugin for Obsidian.
 
-## ✨ Features
+## Features
 
-### 🔍 **Real-Time Text Analysis**
+- **Real-time Statistics**: Word count, character count, reading time, writing pace
+- **Session Tracking**: Daily goals, session words, words per minute
+- **Readability Analysis**: 10 formulas (Flesch, Gunning Fog, SMOG, etc.)
+- **Writing Suggestions**: Repeated words, long sentences, passive voice, clichés
+- **AI Personas**: 8 synthetic readers via local LLM (Ollama)
+- **Multilingual**: EN, PT, ES, FR, DE
 
-- Live analysis as you type (300ms debounce)
-- Comprehensive text metrics and statistics
-- Writing quality suggestions and improvements
+## Installation
 
-### 📊 **Advanced Metrics**
+### From Community Plugins (Recommended)
+1. Open Obsidian Settings → Community Plugins
+2. Disable Safe Mode
+3. Click Browse and search "SmartWrite Companion"
+4. Install and Enable
 
-- Word, character, sentence, and paragraph counts
-- Syllable analysis and reading time estimation
-- Word frequency and vocabulary analysis
-- 6 scientific readability scores (Flesch, Gunning Fog, etc.)
+### Manual Installation
+1. Download `main.js`, `styles.css`, `manifest.json` from latest release
+2. Copy to `.obsidian/plugins/smartwrite-companion/`
+3. Enable in Settings → Community Plugins
 
-### 🎯 **Writing Assistance**
+## Ollama Setup (for AI Personas)
 
-- Repetition detection and suggestions
-- Passive voice identification
-- Cliché detection
-- Long sentence warnings
-- Complex word suggestions
+1. Install Ollama: https://ollama.ai
+2. Pull a model: `ollama pull llama3.2`
+3. Configure endpoint in plugin settings (default: localhost:11434)
 
-### 📈 **Progress Tracking**
+## Screenshots
 
-- Session-based writing statistics
-- Daily goal progress
-- Writing habit monitoring
+[Add screenshots here]
 
-### 🎨 **Beautiful Interface**
+## License
 
-- Integrated Obsidian sidebar
-- Real-time updates
-- Severity-based suggestion grouping
-- Educational readability interpretations
-
-## 🚀 Installation
-
-1. Download the latest release
-2. Extract to your Obsidian plugins folder
-3. Enable in Obsidian settings
-4. Open the sidebar to start analyzing your writing!
-
-## 🏗️ Architecture
-
-- **Core Engines**: Text analysis, statistics, suggestions, readability
-- **Real-Time Processing**: Debounced editor events
-- **Modular Design**: Extensible engine system
-- **TypeScript**: Full type safety and modern development
-
-## 📋 Requirements
-
-- Obsidian 1.0.0+
-- No external dependencies (all bundled)
-
-## 🔧 Development
-
-```bash
-npm install
-npm run dev    # Development build
-npm run build  # Production build
-```
-
-## 📝 License
-
-MIT License - see LICENSE file for details.
-
-## 🤝 Contributing
-
-Contributions welcome! Please see the development documentation in the `docs/` folder.
-
----
-
-**Version 0.4.1** - Suggestions Refactor & UX Polish ✨
+MIT
