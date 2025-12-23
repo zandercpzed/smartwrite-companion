@@ -1,0 +1,35 @@
+{
+  "name": "smartwrite-companion",
+  "version": "0.3.54",
+  "description": "A companion plugin for smart writing workflows.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "workflow": "node scripts/dev-workflow.mjs",
+    "version": "node version-bump.mjs"
+  },
+  "keywords": [],
+  "author": "Zander Catta Preta",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "@typescript-eslint/eslint-plugin": "5.29.0",
+    "@typescript-eslint/parser": "5.29.0",
+    "builtin-modules": "3.3.0",
+    "esbuild": "^0.27.2",
+    "obsidian": "latest",
+    "tslib": "2.4.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "hyphen": "^1.12.0",
+    "sbd": "^1.0.19",
+    "text-readability": "^1.0.0",
+    "write-good": "^1.0.8",
+    "@nlpjs/core": "^4.26.1",
+    "@nlpjs/lang-en-min": "^4.26.1",
+    "@nlpjs/lang-pt": "^4.26.1",
+    "@nlpjs/sentiment": "^4.26.1"
+  }
+}

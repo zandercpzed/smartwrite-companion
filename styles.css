@@ -1,0 +1,488 @@
+/* SmartWrite Companion Styles */
+
+.smartwrite-container {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--background-secondary);
+}
+
+/* Header */
+.smartwrite-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+}
+
+.smartwrite-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.smartwrite-version {
+  display: block;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.smartwrite-settings-btn {
+  color: var(--text-muted);
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px;
+  transition: background-color 0.2s;
+}
+
+.smartwrite-settings-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.smartwrite-panels-container {
+  flex: 1;
+  padding: 0;
+  overflow-y: auto;
+}
+
+/* Panels (Modules) */
+.smartwrite-panel {
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: transparent;
+  margin: 0;
+  border-radius: 0;
+}
+
+.smartwrite-panel:last-child {
+  border-bottom: none;
+}
+
+.smartwrite-panel-header {
+  width: 100%;
+  color: var(--text-normal);
+  cursor: pointer;
+  text-align: left;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.smartwrite-panel-header:hover {
+  background: var(--background-modifier-hover);
+}
+
+.smartwrite-panel-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.smartwrite-panel-title {
+  flex: 1;
+}
+
+.smartwrite-count-badge {
+  background: var(--interactive-accent);
+  color: #fff;
+  border-radius: 10px;
+  flex: none;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.smartwrite-panel-content {
+  padding: 12px;
+}
+
+.smartwrite-setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 5px; /* Added spacing */
+}
+
+/* Base Stats */
+.smartwrite-stat-value {
+  color: var(--text-normal);
+  font-family: var(--font-monospace);
+  font-size: 24px;
+  font-weight: 700;
+  display: block;
+}
+
+.smartwrite-stat-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.smartwrite-stat-mono {
+  color: var(--text-normal);
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Session Stats Specifics */
+.smartwrite-stat-large {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.smartwrite-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.smartwrite-stat-item {
+  margin-bottom: 8px;
+}
+
+.smartwrite-progress-bar {
+  background: var(--background-modifier-border);
+  border-radius: 3px;
+  height: 7px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.smartwrite-progress-fill {
+  background: var(--interactive-accent);
+  border-radius: 3px;
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.smartwrite-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* Text Metrics Specifics */
+.smartwrite-metrics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.smartwrite-metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.smartwrite-metric-indent {
+  opacity: 0.8;
+  padding-left: 12px;
+}
+
+
+/* Suggestions Specifics */
+.smartwrite-suggestions-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0; /* padding handled by panel content tweak */
+}
+
+/* Override panel content padding locally if we want edge-to-edge list */
+.smartwrite-panel-content:has(.smartwrite-suggestions-list) {
+    padding: 0;
+}
+
+
+.smartwrite-suggestion-item {
+  display: flex;
+  flex-direction: column; /* Changed to column to stack expanded details */
+  gap: 0;
+  width: 100%;
+  padding: 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: transparent;
+  transition: background-color 0.2s;
+}
+
+.smartwrite-suggestion-main-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px 12px 19px !important; /* Decreased left padding by 1px (20->19) */
+    width: 100%;
+    cursor: pointer;
+}
+
+.smartwrite-suggestion-item:last-child {
+  border-bottom: none;
+  margin-bottom: 4px; /* Added 4px bottom margin to last item */
+}
+
+.smartwrite-suggestion-main-row:hover {
+  background: var(--background-modifier-hover);
+}
+
+.smartwrite-severity-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 6px; 
+}
+
+.smartwrite-severity-error {
+  background-color: #EF5350; 
+}
+.smartwrite-severity-warning {
+  background-color: #FFA726; 
+}
+.smartwrite-severity-info {
+  background-color: #26A69A; 
+}
+
+.smartwrite-suggestion-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.smartwrite-suggestion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.smartwrite-suggestion-type {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+  line-height: 1.2;
+}
+
+.smartwrite-suggestion-description {
+  color: var(--text-normal);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Detailed/Expanded Styles */
+/* Detailed/Expanded Styles */
+.smartwrite-suggestion-details {
+    padding: 0 16px 12px 34px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.smartwrite-suggestion-item.is-collapsed .smartwrite-suggestion-details {
+    display: none !important;
+}
+
+/* Use grid for small items like repetitions or words to save space */
+.smartwrite-suggestion-item:has(.smartwrite-repetition-item),
+.smartwrite-suggestion-item:has(.smartwrite-simple-item) {
+    /* Use local selector to change parent display if needed or just stylingchildren */
+}
+/* Actually, let's keep it flex column for consistency, or grid for reps?
+   Previous logic used grid for repetitions. Let's make repetitions grid again using a modifier or specific class check?
+   CSS :has is supported in obsidian (modern regex engine).
+ */
+.smartwrite-suggestion-details:has(.smartwrite-repetition-item),
+.smartwrite-suggestion-details:has(.smartwrite-simple-item) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+
+.smartwrite-detail-item {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--background-primary);
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.smartwrite-repetition-item, .smartwrite-simple-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px;
+}
+
+.smartwrite-detail-text {
+    font-weight: 500;
+    color: var(--text-normal);
+}
+
+.smartwrite-detail-sub {
+    font-size: 10px;
+    color: var(--text-muted);
+    opacity: 0.8;
+}
+
+.smartwrite-grammar-item, .smartwrite-long-sentence-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.smartwrite-detail-context {
+    font-family: var(--font-monospace);
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-top: 2px;
+}
+
+.smartwrite-detail-more {
+    grid-column: 1 / -1; /* For grid layouts */
+    text-align: center;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+.smartwrite-suggestion-toggle-icon {
+    font-size: 10px;
+    transform: rotate(0deg);
+    transition: transform 0.2s;
+}
+
+.smartwrite-suggestion-item.is-collapsed .smartwrite-suggestion-toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.smartwrite-no-suggestions {
+  padding: 8px;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Readability Specifics */
+.smartwrite-readability-primary {
+  margin-bottom: 12px;
+}
+
+.smartwrite-readability-score-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.smartwrite-readability-bar-container {
+  background: var(--background-modifier-border);
+  border-radius: 2px;
+  height: 4px;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.smartwrite-readability-indicator {
+  background: var(--interactive-accent);
+  border-radius: 50%;
+  width: 8px;
+  height: 8px;
+  position: absolute;
+  top: -2px;
+  transform: translateX(-50%);
+}
+
+.smartwrite-formula-dropdown {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  width: 100%;
+  color: var(--text-normal);
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* Persona Specifics */
+.smartwrite-persona-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.smartwrite-analyze-btn {
+  background: var(--interactive-accent);
+  color: #fff;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  width: 100%;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  text-align: center;
+}
+
+.smartwrite-analyze-btn:hover:not(:disabled) {
+  background: var(--interactive-accent-hover);
+}
+
+.smartwrite-analyze-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.smartwrite-ollama-status {
+  background: var(--background-primary);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 8px;
+  font-size: 11px;
+  font-weight: 400;
+  border: 1px solid var(--background-modifier-border);
+}
+
+.smartwrite-status-indicator {
+  border-radius: 50%;
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+}
+
+.smartwrite-status-connected {
+  background-color: var(--text-success);
+}
+.smartwrite-status-offline {
+  background-color: var(--text-muted);
+}
