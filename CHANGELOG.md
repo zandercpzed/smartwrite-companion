@@ -1,5 +1,20 @@
 # SmartWrite Companion Changelog
 
+## [0.7.0] - 2026-01-01
+
+### 📚 Major Feature: Longform Integration
+
+**Write entire novels? No problem. SmartWrite now integrates with the Longform plugin.**
+
+### ✨ New Features
+
+- **Longform Project Support**: Analyze entire projects as a single draft.
+- **Project Auto-Detection**: Automatically finds projects defined by the Longform plugin (notes with `longform` frontmatter).
+- **Smart Stitched Analysis**: Compiles all scenes in the correct order into a single analysis context, respecting your manuscript structure.
+- **Configurable Integration**: Enable/Disable and select your active project directly in Settings.
+
+---
+
 ## [0.6.0] - 2026-01-01
 
 ### 🎉 Major Release: Installer & AI Refinements
