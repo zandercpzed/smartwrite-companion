@@ -14,4 +14,6 @@ Icon
 *~
 .obsidian/
 project/prompts/
+docs/
+main.js
 *.js.map
