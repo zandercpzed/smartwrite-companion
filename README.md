@@ -2,6 +2,8 @@
 
 An intelligent writing assistant plugin for Obsidian.
 
+[GitHub Repository](https://github.com/zandercpzed/smartwrite-companion)
+
 ## Features
 
 - **Real-time Statistics**: Word count, character count, reading time, writing pace
@@ -14,12 +16,14 @@ An intelligent writing assistant plugin for Obsidian.
 ## Installation
 
 ### From Community Plugins (Recommended)
+
 1. Open Obsidian Settings → Community Plugins
 2. Disable Safe Mode
 3. Click Browse and search "SmartWrite Companion"
 4. Install and Enable
 
 ### Manual Installation
+
 1. Download `main.js`, `styles.css`, `manifest.json` from latest release
 2. Copy to `.obsidian/plugins/smartwrite-companion/`
 3. Enable in Settings → Community Plugins
