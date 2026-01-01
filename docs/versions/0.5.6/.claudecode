@@ -1,0 +1,21 @@
+# Claude Code - SmartWrite Companion Context
+
+## Project Goals
+SmartWrite Companion is an Obsidian plugin for intelligent writing assistance.
+- Current Status: v0.5.0 Stable (Foundations, Suggestions, Readability).
+- Next Phase: Phase 3 - Local LLM Integration (Ollama).
+
+## Technical Stack
+- TypeScript + ESBuild
+- CodeMirror 6 (Editor Extensions)
+- Local processing only.
+
+## Next Phase Instructions (Phase 3)
+1. Maintain 100% local processing (Ollama).
+2. Follow the roadmap in `docs/roadmap-llm-integration.md`.
+3. Do not modify the stable logic in `v0.5.0` without a clear deprecation plan.
+4. Use standard Obsidian API patterns.
+
+## Branch Strategy
+- `main`: Frozen v0.5.0 stable.
+- `develop`: Primary branch for LLM integration.

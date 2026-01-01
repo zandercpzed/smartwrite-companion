@@ -1,0 +1,10 @@
+{
+  "id": "smartwrite-companion",
+  "name": "SmartWrite Companion",
+  "version": "0.5.12",
+  "minAppVersion": "1.0.0",
+  "description": "A companion plugin for smart writing workflows.",
+  "author": "Zander Catta Preta",
+  "authorUrl": "https://github.com/zandercpzed",
+  "isDesktopOnly": false
+}

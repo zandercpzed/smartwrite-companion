@@ -1,5 +1,25 @@
 # SmartWrite Companion Changelog
 
+## [0.6.0] - 2026-01-01
+
+### 🎉 Major Release: Installer & AI Refinements
+
+**This version introduces a smart installer for easy setup and significantly improves the AI analysis experience.**
+
+### ✨ New Features
+
+- **Smart Installer (`install.sh`)**: A stand-alone script that detects Obsidian vaults, installs the plugin, and automatically sets up Ollama + Qwen model.
+- **Strict Persona System**: All 8 personas have been re-engineered to be critical, direct, and professional—guaranteed no condescension.
+- **Clean Analysis Output**: Generated markdown files now contain _only_ the AI feedback, keeping your vault clutter-free.
+- **Button Pulse Animation**: Replaced the verbose stepper UI with a sleek pulsing animation during analysis.
+
+### 🔧 Technical Improvements
+
+- **Text Chunking**: Added logic to split large texts into chunks, preventing token limit errors during analysis.
+- **Code Cleanup**: Removed redundant prompt files and unused code.
+
+---
+
 ## [0.5.0] - 2026-01-01
 
 ### 🎉 Major Milestone: Writing Quality & Readability Complete

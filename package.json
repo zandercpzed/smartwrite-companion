@@ -1,6 +1,6 @@
 {
   "name": "smartwrite-companion",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "A companion plugin for smart writing workflows.",
   "main": "main.js",
   "scripts": {

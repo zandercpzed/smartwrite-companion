@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.vscode/
+.env
+.DS_Store
+._*
+.AppleDouble
+.LSOverride
+Icon
+.Spotlight-V100
+.Trashes
+*.swp
+*.swo
+*~
+.obsidian/
+project/prompts/
+*.js.map
