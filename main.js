@@ -2622,14 +2622,14 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
         await this.plugin.saveSettings();
       }
     }));
-    containerEl.createEl("h3", { text: "Ollama Integration" });
-    new import_obsidian.Setting(containerEl).setName("Enable Ollama").setDesc("Enable local LLM integration for personas and smart suggestions").addToggle((toggle) => toggle.setValue(this.plugin.settings.ollamaEnabled).onChange(async (value) => {
+    containerEl.createEl("h3", { text: "LLM Integration" });
+    new import_obsidian.Setting(containerEl).setName("Enable LLM").setDesc("Enable local LLM integration for personas and smart suggestions").addToggle((toggle) => toggle.setValue(this.plugin.settings.ollamaEnabled).onChange(async (value) => {
       this.plugin.settings.ollamaEnabled = value;
       await this.plugin.saveSettings();
       this.display();
     }));
     if (this.plugin.settings.ollamaEnabled) {
-      new import_obsidian.Setting(containerEl).setName("Ollama Endpoint").setDesc("The URL of your local Ollama server").addText((text) => text.setPlaceholder("http://localhost:11434").setValue(this.plugin.settings.ollamaEndpoint).onChange(async (value) => {
+      new import_obsidian.Setting(containerEl).setName("LLM Endpoint").setDesc("The URL of your local LLM server").addText((text) => text.setPlaceholder("http://localhost:11434").setValue(this.plugin.settings.ollamaEndpoint).onChange(async (value) => {
         this.plugin.settings.ollamaEndpoint = value;
         await this.plugin.saveSettings();
       }));

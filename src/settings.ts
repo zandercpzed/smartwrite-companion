@@ -80,10 +80,10 @@ export class SmartWriteSettingTab extends PluginSettingTab {
                     }
                 }));
 
-        containerEl.createEl('h3', { text: 'Ollama Integration' });
+        containerEl.createEl('h3', { text: 'LLM Integration' });
 
         new Setting(containerEl)
-            .setName('Enable Ollama')
+            .setName('Enable LLM')
             .setDesc('Enable local LLM integration for personas and smart suggestions')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.ollamaEnabled)
@@ -95,8 +95,8 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 
         if (this.plugin.settings.ollamaEnabled) {
             new Setting(containerEl)
-                .setName('Ollama Endpoint')
-                .setDesc('The URL of your local Ollama server')
+                .setName('LLM Endpoint')
+                .setDesc('The URL of your local LLM server')
                 .addText(text => text
                     .setPlaceholder('http://localhost:11434')
                     .setValue(this.plugin.settings.ollamaEndpoint)
