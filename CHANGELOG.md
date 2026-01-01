@@ -1,13 +1,29 @@
 # SmartWrite Companion Changelog
 
-## [0.4.1] - 2025-12-22
+## [0.5.0] - 2026-01-01
+
+### 🎉 Major Milestone: Writing Quality & Readability Complete
+
+**This version marks the completion of the core writing assistance modules, bringing full editor integration, Portuguese support, and a unified professional interface.**
+
+### ✨ New Features
+
+- **Editor Highlighting**: Real-time visual highlights for passive voice, clichés, and long sentences using CodeMirror 6.
+- **Interactive Suggestions**: Categorized sidebar view with click-to-focus functionality in the editor.
+- **Full Readability Engine**: 6 scientific formulas with real-time interpretation and a premium visual gauge.
+- **Advanced Portuguese Support**: Automatic PT-BR detection, custom syllable counting, and Martins adaptation for Flesch scores.
 
 ### 🎨 UI & UX Improvements
 
-- **Unified Expandable Suggestions**: All suggestion categories (Long Sentences, Complex Words, Grammar) now support the same expandable detail view as Repetitions.
-- **Pixel-Perfect Spacing**: Fine-tuned margins, padding, and alignments in the Suggestions panel for a cleaner look.
-- **Smart Collapsing**: Suggestions are now collapsed by default to reduce noise.
-- **Simplified Readability**: Temporarily replaced complex charts with a placeholder as requested.
+- **Design Harmony**: Unified the Readability panel with the Session Status module (fonts, bars, and layout).
+- **Consolidated Suggestions**: Improved aggregation of individual writing issues for a cleaner sidebar.
+
+### 🔧 Bug Fixes
+
+- **Session Word Counter**: Resolved issues with word tracking when switching between multiple files.
+- **Accuracy**: Improved Portuguese stop-word exclusion for repetition detection.
+
+## [0.4.1] - 2025-12-23
 
 ### 🧠 Core Engine Enhancements
 

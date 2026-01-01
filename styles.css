@@ -116,11 +116,11 @@
 }
 
 .smartwrite-setting-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    margin-bottom: 5px; /* Added spacing */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 5px; /* Added spacing */
 }
 
 /* Base Stats */
@@ -204,7 +204,6 @@
   padding-left: 12px;
 }
 
-
 /* Suggestions Specifics */
 .smartwrite-suggestions-list {
   display: flex;
@@ -214,9 +213,8 @@
 
 /* Override panel content padding locally if we want edge-to-edge list */
 .smartwrite-panel-content:has(.smartwrite-suggestions-list) {
-    padding: 0;
+  padding: 0;
 }
-
 
 .smartwrite-suggestion-item {
   display: flex;
@@ -230,12 +228,12 @@
 }
 
 .smartwrite-suggestion-main-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 12px 16px 12px 19px !important; /* Decreased left padding by 1px (20->19) */
-    width: 100%;
-    cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px 12px 19px !important; /* Decreased left padding by 1px (20->19) */
+  width: 100%;
+  cursor: pointer;
 }
 
 .smartwrite-suggestion-item:last-child {
@@ -252,17 +250,17 @@
   height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
-  margin-top: 6px; 
+  margin-top: 6px;
 }
 
 .smartwrite-severity-error {
-  background-color: #EF5350; 
+  background-color: #ef5350;
 }
 .smartwrite-severity-warning {
-  background-color: #FFA726; 
+  background-color: #ffa726;
 }
 .smartwrite-severity-info {
-  background-color: #26A69A; 
+  background-color: #26a69a;
 }
 
 .smartwrite-suggestion-content {
@@ -273,9 +271,9 @@
 }
 
 .smartwrite-suggestion-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .smartwrite-suggestion-type {
@@ -296,20 +294,20 @@
 /* Detailed/Expanded Styles */
 /* Detailed/Expanded Styles */
 .smartwrite-suggestion-details {
-    padding: 0 16px 12px 34px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+  padding: 0 16px 12px 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .smartwrite-suggestion-item.is-collapsed .smartwrite-suggestion-details {
-    display: none !important;
+  display: none !important;
 }
 
 /* Use grid for small items like repetitions or words to save space */
 .smartwrite-suggestion-item:has(.smartwrite-repetition-item),
 .smartwrite-suggestion-item:has(.smartwrite-simple-item) {
-    /* Use local selector to change parent display if needed or just stylingchildren */
+  /* Use local selector to change parent display if needed or just stylingchildren */
 }
 /* Actually, let's keep it flex column for consistency, or grid for reps?
    Previous logic used grid for repetitions. Let's make repetitions grid again using a modifier or specific class check?
@@ -317,66 +315,67 @@
  */
 .smartwrite-suggestion-details:has(.smartwrite-repetition-item),
 .smartwrite-suggestion-details:has(.smartwrite-simple-item) {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
-
 
 .smartwrite-detail-item {
-    font-size: 11px;
-    color: var(--text-muted);
-    background: var(--background-primary);
-    padding: 6px;
-    border-radius: 4px;
-    border: 1px solid var(--background-modifier-border);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--background-primary);
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
 }
 
-.smartwrite-repetition-item, .smartwrite-simple-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 4px;
+.smartwrite-repetition-item,
+.smartwrite-simple-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px;
 }
 
 .smartwrite-detail-text {
-    font-weight: 500;
-    color: var(--text-normal);
+  font-weight: 500;
+  color: var(--text-normal);
 }
 
 .smartwrite-detail-sub {
-    font-size: 10px;
-    color: var(--text-muted);
-    opacity: 0.8;
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.8;
 }
 
-.smartwrite-grammar-item, .smartwrite-long-sentence-item {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+.smartwrite-grammar-item,
+.smartwrite-long-sentence-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .smartwrite-detail-context {
-    font-family: var(--font-monospace);
-    font-size: 10px;
-    color: var(--text-faint);
-    margin-top: 2px;
+  font-family: var(--font-monospace);
+  font-size: 10px;
+  color: var(--text-faint);
+  margin-top: 2px;
 }
 
 .smartwrite-detail-more {
-    grid-column: 1 / -1; /* For grid layouts */
-    text-align: center;
-    font-size: 10px;
-    color: var(--text-muted);
-    margin-top: 4px;
+  grid-column: 1 / -1; /* For grid layouts */
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
 }
 .smartwrite-suggestion-toggle-icon {
-    font-size: 10px;
-    transform: rotate(0deg);
-    transition: transform 0.2s;
+  font-size: 10px;
+  transform: rotate(0deg);
+  transition: transform 0.2s;
 }
 
 .smartwrite-suggestion-item.is-collapsed .smartwrite-suggestion-toggle-icon {
-    transform: rotate(-90deg);
+  transform: rotate(-90deg);
 }
 
 .smartwrite-no-suggestions {
@@ -485,4 +484,29 @@
 }
 .smartwrite-status-offline {
   background-color: var(--text-muted);
+}
+/* Highlighter Styles */
+.smartwrite-highlight {
+  background-color: transparent;
+  border-bottom: 2px dashed transparent;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.smartwrite-highlight-repetition {
+  border-bottom-color: #ffa726; /* Warning color */
+}
+
+.smartwrite-highlight-grammar {
+  border-bottom-color: #ef5350; /* Error color */
+}
+
+.smartwrite-highlight-passive,
+.smartwrite-highlight-cliche,
+.smartwrite-highlight-long-sentence,
+.smartwrite-highlight-complex-word {
+  border-bottom-color: #26a69a; /* Info color */
+}
+
+.smartwrite-highlight:hover {
+  background-color: var(--background-modifier-hover);
 }

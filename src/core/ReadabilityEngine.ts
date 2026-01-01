@@ -14,7 +14,7 @@ export class ReadabilityEngine {
         const avgSyllablesPerWord = syllableCount / wordCount;
 
         // Flesch Reading Ease
-        const fleschReadingEase = this.calculateFleschReadingEase(avgSyllablesPerWord, avgWordsPerSentence);
+        const fleschReadingEase = this.calculateFleschReadingEase(avgSyllablesPerWord, avgWordsPerSentence, language);
 
         // Flesch-Kincaid Grade Level
         const fleschKincaidGrade = this.calculateFleschKincaidGrade(avgSyllablesPerWord, avgWordsPerSentence);
@@ -46,9 +46,11 @@ export class ReadabilityEngine {
         };
     }
 
-    private calculateFleschReadingEase(avgSyllablesPerWord: number, avgWordsPerSentence: number): number {
-        // Flesch Reading Ease: 206.835 - 1.015 × (words/sentences) - 84.6 × (syllables/words)
-        return 206.835 - (1.015 * avgWordsPerSentence) - (84.6 * avgSyllablesPerWord);
+    private calculateFleschReadingEase(avgSyllablesPerWord: number, avgWordsPerSentence: number, language: string = 'en'): number {
+        // Flesch Reading Ease (Standard EN): 206.835 - 1.015 × (words/sentences) - 84.6 × (syllables/words)
+        // Flesch Reading Ease (Martins adaptation for PT): 248.835 - 1.015 × (words/sentences) - 84.6 × (syllables/words)
+        const constant = (language === 'pt') ? 248.835 : 206.835;
+        return constant - (1.015 * avgWordsPerSentence) - (84.6 * avgSyllablesPerWord);
     }
 
     private calculateFleschKincaidGrade(avgSyllablesPerWord: number, avgWordsPerSentence: number): number {

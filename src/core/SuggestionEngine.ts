@@ -9,27 +9,43 @@ export class SuggestionEngine {
     constructor(options: {
         longSentenceThreshold?: number;
         repetitionThreshold?: number;
+        language?: string;
     } = {}) {
         this.longSentenceThreshold = options.longSentenceThreshold || 25;
         this.repetitionThreshold = options.repetitionThreshold || 3;
 
-        // Passive voice patterns (basic detection)
-        this.passiveVoicePatterns = [
-            /\b(is|are|was|were|be|been|being)\s+(\w+ed|\w+en)\b/gi,
-            /\b(has|have|had)\s+been\s+(\w+ed|\w+en)\b/gi,
-        ];
-
-        // Common clichés (expandable)
-        this.cliches = new Set([
-            'at the end of the day',
-            'in this day and age',
-            'time will tell',
-            'easier said than done',
-            'last but not least',
-            'the bottom line',
-            'make no mistake',
-            'it goes without saying',
-        ]);
+        // Passive voice patterns
+        if (options.language === 'pt') {
+            this.passiveVoicePatterns = [
+                /\b(fui|foi|fomos|foram|era|eram|será|serão|seria|seriam|tenho\s+sido|tem\s+sido|tinha\s+sido|terá\s+sido)\s+\w+([ai]do|to|so|cho)\b/gi,
+            ];
+            this.cliches = new Set([
+                'no final das contas',
+                'hoje em dia',
+                'ao longo do tempo',
+                'falar é fácil',
+                'por último, mas não menos importante',
+                'a verdade é que',
+                'fazer a diferença',
+                'nos dias de hoje',
+                'em última análise',
+            ]);
+        } else {
+            this.passiveVoicePatterns = [
+                /\b(is|are|was|were|be|been|being)\s+(\w+ed|\w+en)\b/gi,
+                /\b(has|have|had)\s+been\s+(\w+ed|\w+en)\b/gi,
+            ];
+            this.cliches = new Set([
+                'at the end of the day',
+                'in this day and age',
+                'time will tell',
+                'easier said than done',
+                'last but not least',
+                'the bottom line',
+                'make no mistake',
+                'it goes without saying',
+            ]);
+        }
     }
 
     analyze(text: string, metrics: TextMetrics): SuggestionsResult {
@@ -45,10 +61,10 @@ export class SuggestionEngine {
         suggestions.push(...this.detectCliches(text));
 
         // Detect long sentences
-        suggestions.push(...this.detectLongSentences(metrics.sentences));
+        suggestions.push(...this.detectLongSentences(text, metrics.sentences));
 
-        // Detect complex words (basic heuristic)
-        suggestions.push(...this.detectComplexWords(metrics.words));
+        // Detect complex words
+        suggestions.push(...this.detectComplexWords(text, metrics.words));
 
         // Use write-good for additional suggestions
         suggestions.push(...this.useWriteGood(text));
@@ -78,106 +94,101 @@ export class SuggestionEngine {
     }
 
     private detectPassiveVoice(text: string): Suggestion[] {
-        let count = 0;
+        const results: Suggestion[] = [];
         for (const pattern of this.passiveVoicePatterns) {
-            const matches = text.match(pattern);
-            if (matches) count += matches.length;
-        }
-
-        if (count === 0) return [];
-
-        return [{
-            id: 'passive-group',
-            type: 'passive',
-            severity: count > 3 ? 'medium' : 'low',
-            message: `${count} sentences use passive voice`,
-            position: { start: 0, end: 0 },
-            explanation: 'Active voice is usually stronger and more direct.',
-        }];
-    }
-
-    private detectCliches(text: string): Suggestion[] {
-        let count = 0;
-        const lowerText = text.toLowerCase();
-        for (const cliche of this.cliches) {
-            // Count occurrences naive way (overlapping not handled, but sufficient for estimates)
-            let pos = lowerText.indexOf(cliche);
-            while (pos !== -1) {
-                count++;
-                pos = lowerText.indexOf(cliche, pos + 1);
-            }
-        }
-
-        if (count === 0) return [];
-
-        return [{
-            id: 'cliche-group',
-            type: 'cliche',
-            severity: 'low',
-            message: `${count} clichés detected`,
-            position: { start: 0, end: 0 },
-            explanation: 'Clichés can make writing feel stale.',
-        }];
-    }
-
-    private detectLongSentences(sentences: string[]): Suggestion[] {
-        const details: any[] = [];
-        for (const sentence of sentences) {
-            const wordCount = sentence.split(/\s+/).length;
-            if (wordCount > this.longSentenceThreshold) {
-                details.push({
-                    text: `...${sentence.substring(0, 40)}...`, // Truncated preview
-                    fullText: sentence,
-                    count: wordCount
+            let match;
+            pattern.lastIndex = 0; // Reset regex
+            while ((match = pattern.exec(text)) !== null) {
+                results.push({
+                    id: `passive-${match.index}`,
+                    type: 'passive',
+                    severity: 'low',
+                    message: `Passive voice: "${match[0]}"`,
+                    position: { start: match.index, end: match.index + match[0].length },
+                    explanation: 'Active voice is usually stronger and more direct.',
                 });
             }
         }
-
-        if (details.length === 0) return [];
-
-        return [{
-            id: 'long-sentence-group',
-            type: 'long-sentence',
-            severity: details.length > 3 ? 'high' : 'medium',
-            message: `${details.length} long sentences`,
-            position: { start: 0, end: 0 },
-            explanation: 'Long sentences can be hard to follow.',
-            details: details
-        }];
+        return results;
     }
 
-    private detectComplexWords(words: string[]): Suggestion[] {
-        const details: any[] = [];
-        const uniqueComplex = new Set<string>();
-        
-        for (const word of words) {
-            if (word.length > 12) {
-                if (!uniqueComplex.has(word)) {
-                    uniqueComplex.add(word);
-                    details.push({ text: word });
+    private detectCliches(text: string): Suggestion[] {
+        const results: Suggestion[] = [];
+        const lowerText = text.toLowerCase();
+        for (const cliche of this.cliches) {
+            let pos = lowerText.indexOf(cliche);
+            while (pos !== -1) {
+                results.push({
+                    id: `cliche-${pos}`,
+                    type: 'cliche',
+                    severity: 'low',
+                    message: `Cliché: "${cliche}"`,
+                    position: { start: pos, end: pos + cliche.length },
+                    explanation: 'Clichés can make writing feel stale.',
+                });
+                pos = lowerText.indexOf(cliche, pos + 1);
+            }
+        }
+        return results;
+    }
+
+    private detectLongSentences(text: string, sentences: string[]): Suggestion[] {
+        const results: Suggestion[] = [];
+        let searchIndex = 0;
+
+        for (const sentence of sentences) {
+            const wordCount = sentence.split(/\s+/).length;
+            if (wordCount > this.longSentenceThreshold) {
+                const index = text.indexOf(sentence, searchIndex);
+                if (index !== -1) {
+                    results.push({
+                        id: `long-sentence-${index}`,
+                        type: 'long-sentence',
+                        severity: wordCount > 40 ? 'high' : 'medium',
+                        message: `Long sentence (${wordCount} words)`,
+                        position: { start: index, end: index + sentence.length },
+                        explanation: 'Long sentences can be hard to follow.',
+                    });
+                    searchIndex = index + sentence.length;
                 }
             }
         }
-        
-        if (details.length === 0) return [];
+        return results;
+    }
 
-        return [{
-            id: 'complex-word-group',
-            type: 'complex-word',
-            severity: 'low',
-            message: `${details.length} complex words detected`,
-            position: { start: 0, end: 0 },
-            explanation: 'Simpler words are often easier to understand.',
-            details: details
-        }];
+    private detectComplexWords(text: string, words: string[]): Suggestion[] {
+        const results: Suggestion[] = [];
+        const complexSet = new Set<string>();
+        
+        words.forEach(word => {
+            if (word.length > 15) complexSet.add(word); 
+        });
+
+        if (complexSet.size === 0) return [];
+
+        let searchIndex = 0;
+        for (const word of complexSet) {
+             let pos = text.indexOf(word, searchIndex);
+             while (pos !== -1) {
+                 results.push({
+                     id: `complex-${pos}`,
+                     type: 'complex-word',
+                     severity: 'low',
+                     message: `Complex word: "${word}"`,
+                     position: { start: pos, end: pos + word.length },
+                     explanation: 'Simpler words are often easier to understand.',
+                 });
+                 pos = text.indexOf(word, pos + 1);
+             }
+        }
+
+        return results;
     }
 
     private useWriteGood(text: string): Suggestion[] {
-        const details: any[] = [];
+        const results: Suggestion[] = [];
         try {
-            // Import write-good dynamically to avoid issues
             const writeGood = require('write-good');
-
             const suggestions_raw = writeGood(text, {
                 passive: false, // Handled separately
                 illusion: true,
@@ -190,27 +201,20 @@ export class SuggestionEngine {
             });
             
             suggestions_raw.forEach((s: any) => {
-                 details.push({
-                     text: s.reason,
-                     context: `...${text.substring(Math.max(0, s.index - 10), Math.min(text.length, s.index + s.offset + 10))}...`
+                 results.push({
+                     id: `grammar-${s.index}`,
+                     type: 'grammar',
+                     severity: 'medium',
+                     message: s.reason,
+                     position: { start: s.index, end: s.index + s.offset },
+                     explanation: 'Review grammar and style suggestions.',
                  });
             });
 
         } catch (error) {
             console.warn('Write-good analysis failed:', error);
         }
-
-        if (details.length === 0) return [];
-
-        return [{
-            id: 'grammar-group',
-            type: 'grammar',
-            severity: 'medium',
-            message: `${details.length} grammar/style issues`,
-            position: { start: 0, end: 0 },
-            explanation: 'Review grammar and style suggestions.',
-            details: details
-        }];
+        return results;
     }
 
     private mapWriteGoodType(reason: string): Suggestion['type'] {

@@ -8,6 +8,7 @@ import { StatsEngine } from './core/StatsEngine';
 import { SuggestionEngine } from './core/SuggestionEngine';
 import { ReadabilityEngine } from './core/ReadabilityEngine';
 import { Language } from './types';
+import { Highlighter } from './services/Highlighter';
 
 export default class SmartWriteCompanionPlugin extends Plugin {
     settings: SmartWriteSettings;
@@ -38,6 +39,9 @@ export default class SmartWriteCompanionPlugin extends Plugin {
         // Add settings tab
         this.addSettingTab(new SmartWriteSettingTab(this.app, this));
 
+        // Register editor highlighter
+        this.registerEditorExtension(Highlighter.getExtension());
+
         // Add ribbon icon
         this.addRibbonIcon('lightbulb', 'SmartWrite Companion', () => {
             this.toggleSidebar();
@@ -63,6 +67,7 @@ export default class SmartWriteCompanionPlugin extends Plugin {
         this.registerEvent(
             this.app.workspace.on('active-leaf-change', (leaf) => {
                 if (leaf && leaf.view instanceof MarkdownView) {
+                    this.sessionTracker.resetFileBaseline();
                     this.analyzeAndUpdate(leaf.view.editor.getValue());
                 }
             })
@@ -127,14 +132,31 @@ export default class SmartWriteCompanionPlugin extends Plugin {
 
     private analyzeAndUpdate(text: string): void {
         try {
+            // Basic language detection (very simple for now: check for common PT words)
+            const ptWords = ['que', 'para', 'com', 'uma', 'este'];
+            const lang: Language = ptWords.some(w => text.toLowerCase().includes(w)) ? 'pt' : 'en';
+
+            // Re-initialize engine if language changed (or pass it)
+            // For SuggestionEngine, we need to pass it to constructor or update patterns.
+            // Let's re-init for simplicity if needed, or better, pass language to analyze.
+            // Actually, SuggestionEngine constructor takes language.
+            this.suggestionEngine = new SuggestionEngine({ language: lang });
+
             // Analyze text
-            const metrics = this.textAnalyzer.analyze(text, 'en'); // TODO: detect language
+            const metrics = this.textAnalyzer.analyze(text, lang);
             const stats = this.statsEngine.calculateTextStats(metrics, this.settings.readingSpeed);
             const suggestions = this.suggestionEngine.analyze(text, metrics);
-            const readability = this.readabilityEngine.calculateScores(metrics, 'en');
+            const readability = this.readabilityEngine.calculateScores(metrics, lang);
 
             // Update session tracker
             this.sessionTracker.updateWords(stats.wordCount);
+
+            // Update editor highlights if sidebar is open or always? 
+            // Usually we want highlights if the plugin is active.
+            const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (activeView && (activeView.editor as any).cm) {
+                Highlighter.updateHighlights((activeView.editor as any).cm, suggestions.suggestions);
+            }
 
             // Update sidebar if open
             this.updateSidebar(stats, suggestions, readability);

@@ -9,6 +9,7 @@ export interface SmartWriteSettings {
     showSuggestions: boolean;
     showReadability: boolean;
     showPersona: boolean;
+    preferredReadabilityFormula: string;
 }
 
 export const DEFAULT_SETTINGS: SmartWriteSettings = {
@@ -19,6 +20,7 @@ export const DEFAULT_SETTINGS: SmartWriteSettings = {
     showSuggestions: true,
     showReadability: true,
     showPersona: true,
+    preferredReadabilityFormula: 'fleschReadingEase',
 };
 
 export class SmartWriteSettingTab extends PluginSettingTab {

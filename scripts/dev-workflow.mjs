@@ -90,7 +90,7 @@ async function main() {
 
   // 3. Sync with Vault (Rule 3)
   console.log('Syncing with Vault plugin folder...');
-  const vaultPluginDir = path.join(projectRoot, '.obsidian', 'plugins', 'smartwrite-companion');
+  const vaultPluginDir = "/Users/zander/Library/CloudStorage/GoogleDrive-zander.cattapreta@zedicoes.com/Shared drives/Z•Edições/~ livros/~ Zander Catta Preta/_ rascunhos/.obsidian/plugins/smartwrite-companion";
 
   // Ensure directory exists (it should, but safety first)
   if (!fs.existsSync(vaultPluginDir)) {

@@ -5,7 +5,7 @@ export class SessionTracker {
     private plugin: Plugin;
     private currentSession: SessionStats | null = null;
     private dailyProgress: Map<string, DailyProgress> = new Map();
-    private wordsAtStart: number = 0;
+    private lastKnownTotalInFile: number | null = null;
 
     constructor(plugin: Plugin) {
         this.plugin = plugin;
@@ -13,7 +13,7 @@ export class SessionTracker {
     }
 
     startSession(currentWordCount: number): void {
-        this.wordsAtStart = currentWordCount;
+        this.lastKnownTotalInFile = currentWordCount;
         if (!this.currentSession) {
             this.currentSession = {
                 startTime: new Date(),
@@ -39,30 +39,39 @@ export class SessionTracker {
         this.startSession(currentWordCount);
     }
 
+    resetFileBaseline(): void {
+        this.lastKnownTotalInFile = null;
+    }
+
     updateWords(currentTotalWords: number): void {
         if (!this.currentSession) {
             this.startSession(currentTotalWords);
+            return;
         }
 
-        if (this.currentSession) {
-            // Words written in *this* session
-            const wordsDiff = currentTotalWords - this.wordsAtStart;
-            // Avoid negative counts if user deletes text
-            this.currentSession.wordsWritten = wordsDiff > 0 ? wordsDiff : 0;
-            
-            this.updateTimeSpent();
+        if (this.lastKnownTotalInFile === null) {
+            this.lastKnownTotalInFile = currentTotalWords;
+        }
 
-            this.currentSession.wpm = this.currentSession.timeSpent > 0.5 
-                ? Math.round(this.currentSession.wordsWritten / this.currentSession.timeSpent) 
-                : 0;
+        const delta = currentTotalWords - this.lastKnownTotalInFile;
+        // Only count additions to session words
+        if (delta > 0) {
+            this.currentSession.wordsWritten += delta;
+        }
+        
+        this.lastKnownTotalInFile = currentTotalWords;
+        
+        this.updateTimeSpent();
 
-            const settings = (this.plugin as any).settings;
-            if (settings && settings.dailyGoal) {
-                // Progress is based on daily total, not just session
-                const todayProgress = this.getTodayProgress();
-                const totalDailyWords = todayProgress.wordsWritten + this.currentSession.wordsWritten;
-                this.currentSession.progress = this.calculateProgress(totalDailyWords, settings.dailyGoal);
-            }
+        this.currentSession.wpm = this.currentSession.timeSpent > 0.5 
+            ? Math.round(this.currentSession.wordsWritten / this.currentSession.timeSpent) 
+            : 0;
+
+        const settings = (this.plugin as any).settings;
+        if (settings && settings.dailyGoal) {
+            const todayProgress = this.getTodayProgress();
+            const totalDailyWords = todayProgress.wordsWritten + this.currentSession.wordsWritten;
+            this.currentSession.progress = this.calculateProgress(totalDailyWords, settings.dailyGoal);
         }
     }
 
