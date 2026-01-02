@@ -1,7 +1,7 @@
 {
   "name": "smartwrite-companion",
-  "version": "0.8.0",
-  "description": "An intelligent writing assistant with real-time statistics, readability analysis, and AI-powered persona feedback.",
+  "version": "0.8.0m",
+  "description": "An intelligent writing assistant with real-time statistics, readability analysis, and AI-powered persona feedback. Mobile-optimized version.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
