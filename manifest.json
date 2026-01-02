@@ -1,10 +1,10 @@
 {
   "id": "smartwrite-companion",
   "name": "SmartWrite Companion",
-  "version": "0.8.0m",
+  "version": "0.8.0",
   "minAppVersion": "1.0.0",
-  "description": "An intelligent writing assistant with real-time statistics, readability analysis, and AI-powered persona feedback. Mobile-optimized version.",
+  "description": "Real-time writing statistics, readability analysis, and AI-powered feedback for Obsidian.",
   "author": "Zander Catta Preta",
   "authorUrl": "https://github.com/zandercpzed",
-  "isDesktopOnly": false
+  "isDesktopOnly": true
 }

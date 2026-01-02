@@ -1,7 +1,7 @@
 {
   "name": "smartwrite-companion",
-  "version": "0.8.0m",
-  "description": "An intelligent writing assistant with real-time statistics, readability analysis, and AI-powered persona feedback. Mobile-optimized version.",
+  "version": "0.8.0",
+  "description": "Real-time writing statistics, readability analysis, and AI-powered feedback for Obsidian.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
