@@ -20,14 +20,32 @@ An intelligent writing assistant plugin for Obsidian that helps you write better
 ### Automatic Installation (Recommended)
 
 1. Download the latest release.
-2. Unzip and run the installer script in your terminal:
+2. Unzip the folder.
+3. Run the installer for your OS:
+
+   **🍎 macOS**:
+
    ```bash
-   ./install.sh
+   ./install_mac.sh
    ```
-   This script will:
+
+   **🐧 Linux**:
+
+   ```bash
+   ./install_linux.sh
+   ```
+
+   **🪟 Windows (PowerShell)**:
+
+   ```powershell
+   .\install_windows.ps1
+   ```
+
+   The installer will:
+
    - 🔍 Detect your Obsidian vaults automatically.
    - 📦 Install the plugin files to the correct folder.
-   - 🤖 Check and install **Ollama** (via Homebrew) if missing.
+   - 🤖 Check and install **Ollama** if missing (macOS/Linux) or verify installation (Windows).
    - 🧠 Download the **Qwen 2.5** AI model automatically.
 
 ### Manual Installation
