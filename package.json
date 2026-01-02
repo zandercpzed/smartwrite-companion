@@ -1,7 +1,7 @@
 {
   "name": "smartwrite-companion",
   "version": "0.8.0",
-  "description": "A companion plugin for smart writing workflows.",
+  "description": "An intelligent writing assistant with real-time statistics, readability analysis, and AI-powered persona feedback.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
