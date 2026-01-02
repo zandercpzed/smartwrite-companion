@@ -15,3 +15,4 @@ Icon
 .obsidian/
 project/prompts/
 *.js.map
+.claude/
