@@ -81,17 +81,17 @@ function main() {
 
     // Delete existing release if it exists
     try {
-      runCommand(`gh release delete v${version} --yes`, 'Deleting existing release (if any)');
+      runCommand(`gh release delete ${version} --yes`, 'Deleting existing release (if any)');
     } catch (error) {
       console.log('ℹ️  No existing release to delete');
     }
 
     // Create new release
-    const releaseCommand = `gh release create v${version} --title "SmartWrite Companion v${version}" --notes "${changelog.replace(/"/g, '\\"')}"`;
+    const releaseCommand = `gh release create ${version} --title "SmartWrite Companion ${version}" --notes "${changelog.replace(/"/g, '\\"')}"`;
     runCommand(releaseCommand, 'Creating GitHub release');
 
-    console.log(`\n🎉 Release v${version} created successfully!`);
-    console.log(`🔗 https://github.com/zandercpzed/smartwrite-companion/releases/tag/v${version}`);
+    console.log(`\n🎉 Release ${version} created successfully!`);
+    console.log(`🔗 https://github.com/zandercpzed/smartwrite-companion/releases/tag/${version}`);
 
   } catch (error) {
     console.error('\n💥 Release failed:', error.message);
