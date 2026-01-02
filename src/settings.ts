@@ -18,6 +18,7 @@ export interface SmartWriteSettings {
     // Longform Settings (Phase 3+)
     longformEnabled: boolean;
     longformProjectPath: string;
+    outputLanguage: string;
 }
 
 export const DEFAULT_SETTINGS: SmartWriteSettings = {
@@ -36,6 +37,7 @@ export const DEFAULT_SETTINGS: SmartWriteSettings = {
     selectedPersona: 'critical-editor',
     longformEnabled: false,
     longformProjectPath: '',
+    outputLanguage: 'auto'
 };
 
 export class SmartWriteSettingTab extends PluginSettingTab {
@@ -112,6 +114,22 @@ export class SmartWriteSettingTab extends PluginSettingTab {
             this.renderModelsSection(modelsContainer);
         }
 
+
+        new Setting(containerEl)
+            .setName('Output Language')
+            .setDesc('Default language for AI responses (Auto matches input text)')
+            .addDropdown(dropdown => dropdown
+                .addOption('auto', 'Auto (Match Input)')
+                .addOption('pt-br', 'Portuguese (BR)')
+                .addOption('en-us', 'English (US)')
+                .addOption('es', 'Spanish')
+                .addOption('fr', 'French')
+                .addOption('de', 'German')
+                .setValue(this.plugin.settings.outputLanguage)
+                .onChange(async (value) => {
+                    this.plugin.settings.outputLanguage = value;
+                    await this.plugin.saveSettings();
+                }));
 
         // Longform Integration Section
         containerEl.createEl('h3', { text: 'Longform Integration' });

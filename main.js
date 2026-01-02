@@ -2597,7 +2597,8 @@ var DEFAULT_SETTINGS = {
   ollamaEnabled: false,
   selectedPersona: "critical-editor",
   longformEnabled: false,
-  longformProjectPath: ""
+  longformProjectPath: "",
+  outputLanguage: "auto"
 };
 var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
   constructor(app, plugin) {
@@ -2637,6 +2638,10 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
       const modelsContainer = containerEl.createDiv({ cls: "smartwrite-models-container" });
       this.renderModelsSection(modelsContainer);
     }
+    new import_obsidian.Setting(containerEl).setName("Output Language").setDesc("Default language for AI responses (Auto matches input text)").addDropdown((dropdown) => dropdown.addOption("auto", "Auto (Match Input)").addOption("pt-br", "Portuguese (BR)").addOption("en-us", "English (US)").addOption("es", "Spanish").addOption("fr", "French").addOption("de", "German").setValue(this.plugin.settings.outputLanguage).onChange(async (value) => {
+      this.plugin.settings.outputLanguage = value;
+      await this.plugin.saveSettings();
+    }));
     containerEl.createEl("h3", { text: "Longform Integration" });
     new import_obsidian.Setting(containerEl).setName("Enable Longform Integration").setDesc("Allow analysis of full Longform projects").addToggle((toggle) => toggle.setValue(this.plugin.settings.longformEnabled).onChange(async (value) => {
       this.plugin.settings.longformEnabled = value;
@@ -3136,6 +3141,29 @@ var PersonaPanel = class extends BasePanel {
       });
       description.setText(selectedPersona.description);
     }
+    const langContainer = container.createEl("div", { cls: "smartwrite-control-group" });
+    langContainer.createEl("label", { text: "Response Language" });
+    const langSelect = langContainer.createEl("select");
+    langSelect.style.width = "100%";
+    langSelect.style.marginBottom = "15px";
+    const languages = [
+      { value: "auto", label: "Auto (Match Input)" },
+      { value: "pt-br", label: "Portuguese (BR)" },
+      { value: "en-us", label: "English (US)" },
+      { value: "es", label: "Spanish" },
+      { value: "fr", label: "French" },
+      { value: "de", label: "German" }
+    ];
+    languages.forEach((lang) => {
+      const option = langSelect.createEl("option", { value: lang.value });
+      option.setText(lang.label);
+    });
+    langSelect.value = this.plugin.settings.outputLanguage || "auto";
+    langSelect.addEventListener("change", async (e) => {
+      const target = e.target;
+      this.plugin.settings.outputLanguage = target.value;
+      await this.plugin.saveSettings();
+    });
     const analyzeButton = container.createEl("button", {
       text: "Analyze Text",
       cls: "mod-cta",

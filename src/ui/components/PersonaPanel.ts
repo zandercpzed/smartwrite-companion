@@ -93,6 +93,37 @@ export class PersonaPanel extends BasePanel {
             description.setText(selectedPersona.description);
         }
 
+        // Output Language Dropdown
+        const langContainer = container.createEl('div', { cls: 'smartwrite-control-group' });
+        langContainer.createEl('label', { text: 'Response Language' });
+        
+        const langSelect = langContainer.createEl('select');
+        langSelect.style.width = '100%';
+        langSelect.style.marginBottom = '15px';
+
+        const languages = [
+            { value: 'auto', label: 'Auto (Match Input)' },
+            { value: 'pt-br', label: 'Portuguese (BR)' },
+            { value: 'en-us', label: 'English (US)' },
+            { value: 'es', label: 'Spanish' },
+            { value: 'fr', label: 'French' },
+            { value: 'de', label: 'German' }
+        ];
+
+        languages.forEach(lang => {
+            const option = langSelect.createEl('option', { value: lang.value });
+            option.setText(lang.label);
+        });
+
+        // Set default from settings
+        langSelect.value = this.plugin.settings.outputLanguage || 'auto';
+
+        langSelect.addEventListener('change', async (e) => {
+            const target = e.target as HTMLSelectElement;
+            this.plugin.settings.outputLanguage = target.value;
+            await this.plugin.saveSettings();
+        });
+
         // Analyze button
         const analyzeButton = container.createEl('button', {
             text: 'Analyze Text',
