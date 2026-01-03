@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SmartWrite Companion - Mobile Test</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        /* Obsidian-like theme simulation */
+        :root {
+            --background-primary: #ffffff;
+            --background-secondary: #f8f9fa;
+            --text-normal: #2e3338;
+            --text-muted: #888888;
+            --interactive-accent: #4c9eff;
+            --interactive-accent-hover: #3a8ae6;
+            --border-color: #e0e0e0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background-primary: #202020;
+                --background-secondary: #161616;
+                --text-normal: #dcddde;
+                --text-muted: #888888;
+                --interactive-accent: #4c9eff;
+                --interactive-accent-hover: #3a8ae6;
+                --border-color: #3a3a3a;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: var(--background-primary);
+            color: var(--text-normal);
+        }
+
+        .test-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: var(--background-secondary);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .device-info {
+            background: var(--background-primary);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="device-info">
+            <strong>Device Test Info:</strong><br>
+            Screen: <span id="screen-size"></span><br>
+            Orientation: <span id="orientation"></span><br>
+            Touch: <span id="touch-support"></span>
+        </div>
+
+        <!-- SmartWrite Companion UI Test -->
+        <div class="smartwrite-container">
+            <div class="smartwrite-header">
+                <div class="smartwrite-title">SmartWrite Companion</div>
+                <div class="smartwrite-version">v0.8.0m</div>
+                <button class="smartwrite-settings-btn" title="Settings">⚙️</button>
+            </div>
+
+            <div class="smartwrite-panels-container">
+                <!-- Stats Panel -->
+                <div class="smartwrite-panel">
+                    <div class="smartwrite-panel-header">
+                        <span class="smartwrite-panel-toggle">▼</span>
+                        <span class="smartwrite-panel-title">Writing Stats</span>
+                    </div>
+                    <div class="smartwrite-panel-content">
+                        <div class="smartwrite-stats-grid">
+                            <div class="smartwrite-stat-item">
+                                <div class="smartwrite-stat-value">1,247</div>
+                                <div class="smartwrite-stat-label">Words</div>
+                            </div>
+                            <div class="smartwrite-stat-item">
+                                <div class="smartwrite-stat-value">8.2</div>
+                                <div class="smartwrite-stat-label">Readability</div>
+                            </div>
+                            <div class="smartwrite-stat-item">
+                                <div class="smartwrite-stat-value">12:34</div>
+                                <div class="smartwrite-stat-label">Time</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analysis Panel -->
+                <div class="smartwrite-panel">
+                    <div class="smartwrite-panel-header">
+                        <span class="smartwrite-panel-toggle">▼</span>
+                        <span class="smartwrite-panel-title">Text Analysis</span>
+                    </div>
+                    <div class="smartwrite-panel-content">
+                        <button class="smartwrite-analyze-btn">
+                            Analyze Current Note
+                        </button>
+                        <div class="smartwrite-ollama-status">
+                            <span class="smartwrite-status-indicator" style="background: #4ade80;"></span>
+                            Ollama Service: Connected
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Panel -->
+                <div class="smartwrite-panel">
+                    <div class="smartwrite-panel-header">
+                        <span class="smartwrite-panel-toggle">▼</span>
+                        <span class="smartwrite-panel-title">Settings</span>
+                    </div>
+                    <div class="smartwrite-panel-content">
+                        <div class="smartwrite-setting-row">
+                            <label>Analysis Depth</label>
+                            <select>
+                                <option>Basic</option>
+                                <option>Detailed</option>
+                            </select>
+                        </div>
+                        <div class="smartwrite-setting-row">
+                            <label>Auto-save</label>
+                            <input type="checkbox" checked>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Device detection for testing
+        function updateDeviceInfo() {
+            const screenSize = `${window.innerWidth}x${window.innerHeight}`;
+            const orientation = window.innerWidth > window.innerHeight ? 'Landscape' : 'Portrait';
+            const touchSupport = 'ontouchstart' in window ? 'Touch Supported' : 'No Touch';
+
+            document.getElementById('screen-size').textContent = screenSize;
+            document.getElementById('orientation').textContent = orientation;
+            document.getElementById('touch-support').textContent = touchSupport;
+        }
+
+        updateDeviceInfo();
+        window.addEventListener('resize', updateDeviceInfo);
+        window.addEventListener('orientationchange', updateDeviceInfo);
+
+        // Simulate button interactions
+        document.querySelectorAll('.smartwrite-analyze-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.classList.add('smartwrite-btn-processing');
+                setTimeout(() => {
+                    this.classList.remove('smartwrite-btn-processing');
+                }, 2000);
+            });
+        });
+
+        // Panel toggle simulation
+        document.querySelectorAll('.smartwrite-panel-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const panel = this.closest('.smartwrite-panel');
+                const content = panel.querySelector('.smartwrite-panel-content');
+                const isExpanded = content.style.display !== 'none';
+
+                content.style.display = isExpanded ? 'none' : 'block';
+                this.textContent = isExpanded ? '▶' : '▼';
+            });
+        });
+    </script>
+</body>
+</html>
