@@ -9,6 +9,7 @@
     "test": "vitest",
     "workflow": "node scripts/dev-workflow.mjs",
     "version": "node version-bump.mjs",
+    "backup": "bash scripts/daily-backup.sh",
     "release": "npm run build && npm run workflow && node scripts/release.mjs",
     "submit-obsidian": "node scripts/submit-obsidian.mjs",
     "publish": "npm run release && npm run submit-obsidian"

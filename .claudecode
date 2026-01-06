@@ -1,21 +1,79 @@
 # Claude Code - SmartWrite Companion Context
 
-## Project Goals
-SmartWrite Companion is an Obsidian plugin for intelligent writing assistance.
-- Current Status: v0.5.0 Stable (Foundations, Suggestions, Readability).
-- Next Phase: Phase 3 - Local LLM Integration (Ollama).
+## Project Overview
+SmartWrite Companion is an intelligent writing assistant plugin for Obsidian that helps users write better, faster, and with more confidence. All processing is done 100% locally.
+
+**Current Version**: v0.8.0
+**Status**: Stable release with full AI integration via Ollama
+
+## Core Features
+- **Real-time Statistics**: Word count, character count, reading time, writing pace, session tracking
+- **Readability Analysis**: 10 formulas (Flesch, Gunning Fog, SMOG, etc.) for EN and PT
+- **Writing Suggestions**: Detects repeated words, long sentences, passive voice, clichés
+- **AI Personas**: 8 synthetic readers providing detailed feedback via local AI (Llama, Mistral, Qwen, etc.)
+- **Model Management**: Download and manage AI models directly from settings
+- **File-Based Analysis**: AI feedback saved to markdown files
+- **Multilingual Support**: Optimized for EN, PT, ES, FR, DE
 
 ## Technical Stack
-- TypeScript + ESBuild
-- CodeMirror 6 (Editor Extensions)
-- Local processing only.
+- **Language**: TypeScript
+- **Build Tool**: ESBuild
+- **Editor**: CodeMirror 6 extensions
+- **AI Runtime**: Ollama (local LLM execution)
+- **NLP Libraries**: @nlpjs/core, text-readability, write-good, hyphen, sbd
+- **Testing**: Vitest
+- **Platform**: Obsidian API
 
-## Next Phase Instructions (Phase 3)
-1. Maintain 100% local processing (Ollama).
-2. Follow the roadmap in `docs/roadmap-llm-integration.md`.
-3. Do not modify the stable logic in `v0.5.0` without a clear deprecation plan.
-4. Use standard Obsidian API patterns.
+## Development Philosophy
+- **100% Local Processing**: No external API calls, all data stays on user's machine
+- **Privacy First**: Zero telemetry, zero tracking
+- **Standard Patterns**: Follow Obsidian API conventions
+- **Code Quality**: TypeScript strict mode, comprehensive testing
 
-## Branch Strategy
-- `main`: Frozen v0.5.0 stable.
-- `develop`: Primary branch for LLM integration.
+## Current Branch Strategy
+- **main**: Production-ready stable releases
+- **feature/mobile-support**: Current work - adapting plugin for mobile Obsidian
+- **Feature branches**: Short-lived, merged to main via PR
+
+## Development Workflow
+
+### Automated Release Process
+```bash
+npm run publish        # Full automation (GitHub + Obsidian submission)
+npm run release        # GitHub release only
+npm run submit-obsidian # Obsidian PR only
+```
+
+### Standard Development
+```bash
+npm run dev      # Watch mode development
+npm run build    # Production build with type checking
+npm run test     # Run Vitest test suite
+npm run workflow # Backup version to docs/versions/
+npm run backup   # Daily backup to BKP/BKP-[date].zip
+```
+
+### Daily Maintenance
+**Backup Rule**: Create daily snapshots of the entire project
+- Command: `npm run backup`
+- Location: `BKP/BKP-YYYY-MM-DD.zip`
+- Excludes: BKP folder itself, node_modules, .git, .claude
+- Retention: Automatic cleanup of backups older than 30 days
+- Best practice: Run at start of each development session
+
+## File Structure Highlights
+- `main.ts`: Plugin entry point
+- `src/`: Core plugin logic (UI, analysis, AI integration)
+- `docs/`: Documentation, blueprints, technical architecture
+- `docs/releases/`: Distribution packages (.zip files)
+- `scripts/`: Automation scripts (release, submission)
+
+## Key Constraints
+1. Maintain backwards compatibility when possible
+2. Keep plugin lightweight (bundle size matters on mobile)
+3. Ensure all AI processing works offline
+4. Follow Obsidian community plugin guidelines
+5. Test on both desktop and mobile (when applicable)
+
+## Current Focus
+Mobile support adaptation - ensuring the plugin works seamlessly on Obsidian mobile apps (iOS/Android) while maintaining desktop functionality.
