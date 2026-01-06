@@ -16,3 +16,4 @@ Icon
 project/prompts/
 *.js.map
 .claude/
+docs/
