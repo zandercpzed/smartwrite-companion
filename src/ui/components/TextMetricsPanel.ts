@@ -26,8 +26,8 @@ export class TextMetricsPanel extends BasePanel {
         this.createMetricRow(metricsDiv, 'No spaces', `${this.stats.characterCountNoSpaces.toLocaleString()}`, true);
         this.createMetricRow(metricsDiv, 'Sentences', `${this.stats.sentenceCount.toLocaleString()}`);
         this.createMetricRow(metricsDiv, 'Paragraphs', `${this.stats.paragraphCount.toLocaleString()}`);
-        this.createMetricRow(metricsDiv, 'Reading time', this.plugin.statsEngine.formatTime(this.stats.readingTimeMinutes));
-        this.createMetricRow(metricsDiv, 'Unique words', `${this.stats.wordFrequency.size.toLocaleString()}`);
+        this.createMetricRow(metricsDiv, 'Reading Time', this.plugin.statsEngine.formatTime(this.stats.readingTimeMinutes));
+        this.createMetricRow(metricsDiv, 'Unique Words', `${this.stats.wordFrequency.size.toLocaleString()}`);
     }
 
     private createMetricRow(container: HTMLElement, label: string, value: string, indent: boolean = false): void {

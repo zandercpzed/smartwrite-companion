@@ -47,7 +47,7 @@ export class LongformService {
      * Recursively parses the scene list from frontmatter.
      * Longform scene lists can be simple arrays or nested objects (folders).
      */
-    private parseSceneList(scenes: any[]): string[] {
+    private parseSceneList(scenes: unknown): string[] {
         let scenePaths: string[] = [];
         
         if (!Array.isArray(scenes)) return [];

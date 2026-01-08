@@ -40,32 +40,37 @@ export default class SmartWriteCompanionPlugin extends Plugin {
         this.translationService = new TranslationService(this);
 
         // Initialize Ollama service
-        this.ollamaService.initializeService().then(async (result) => {
-            if (result.success) {
-                console.debug('SmartWrite: Ollama initialized -', result.message);
+        void (async () => {
+            try {
+                const result = await this.ollamaService.initializeService();
+                if (result.success) {
+                    console.debug('SmartWrite: Ollama initialized -', result.message);
 
-                // Auto-install model if needed
-                if (result.needsInstall) {
-                    console.debug(`SmartWrite: Installing default model ${this.settings.ollamaModel}...`);
-                    
-                    const success = await this.ollamaService.pullModel(
-                        this.settings.ollamaModel,
-                        (progress) => {
-                            // Update sidebar with progress
-                            this.updateModelInstallProgress(progress);
+                    // Auto-install model if needed
+                    if (result.needsInstall) {
+                        console.debug(`SmartWrite: Installing default model ${this.settings.ollamaModel}...`);
+                        
+                        const success = await this.ollamaService.pullModel(
+                            this.settings.ollamaModel,
+                            (progress) => {
+                                // Update sidebar with progress
+                                this.updateModelInstallProgress(progress);
+                            }
+                        );
+                        
+                        if (success) {
+                            console.debug('SmartWrite: Model installed successfully');
+                        } else {
+                            console.error('SmartWrite: Model installation failed');
                         }
-                    );
-                    
-                    if (success) {
-                        console.debug('SmartWrite: Model installed successfully');
-                    } else {
-                        console.error('SmartWrite: Model installation failed');
                     }
+                } else {
+                    console.warn('SmartWrite: Ollama initialization failed -', result.message);
                 }
-            } else {
-                console.warn('SmartWrite: Ollama initialization failed -', result.message);
+            } catch (error) {
+                console.error('SmartWrite: Ollama service error', error);
             }
-        });
+        })();
 
         // Initialize session tracker
         this.sessionTracker = new SessionTracker(this);
@@ -98,7 +103,7 @@ export default class SmartWriteCompanionPlugin extends Plugin {
 
         // Register editor change event with debounce
         this.registerEvent(
-            this.app.workspace.on('editor-change', debounce((editor: any, view: MarkdownView) => {
+            this.app.workspace.on('editor-change', debounce((editor: MarkdownView['editor'], view: MarkdownView) => {
                 this.onEditorChange(editor, view);
             }, 300))
         );
@@ -165,12 +170,12 @@ export default class SmartWriteCompanionPlugin extends Plugin {
         }
     }
 
-    private onEditorChange(editor: any, view: MarkdownView): void {
+    private onEditorChange(editor: MarkdownView['editor'], view: MarkdownView): void {
         const text = editor.getValue();
         this.analyzeAndUpdate(text);
     }
 
-    private analyzeAndUpdate(text: string): void {
+    private async analyzeAndUpdate(text: string): Promise<void> {
         try {
             // Basic language detection (very simple for now: check for common PT words)
             const ptWords = ['que', 'para', 'com', 'uma', 'este'];
@@ -185,7 +190,7 @@ export default class SmartWriteCompanionPlugin extends Plugin {
             // Analyze text
             const metrics = this.textAnalyzer.analyze(text, lang);
             const stats = this.statsEngine.calculateTextStats(metrics, this.settings.readingSpeed);
-            const suggestions = this.suggestionEngine.analyze(text, metrics);
+            const suggestions = await this.suggestionEngine.analyze(text, metrics);
             const readability = this.readabilityEngine.calculateScores(metrics, lang);
 
             // Update session tracker
@@ -194,8 +199,12 @@ export default class SmartWriteCompanionPlugin extends Plugin {
             // Update editor highlights if sidebar is open or always? 
             // Usually we want highlights if the plugin is active.
             const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-            if (activeView && (activeView.editor as any).cm) {
-                Highlighter.updateHighlights((activeView.editor as any).cm, suggestions.suggestions);
+            if (activeView) {
+                // @ts-ignore - cm is internal to Obsidian editor but needed for highlighting
+                const cm = activeView.editor.cm;
+                if (cm) {
+                    Highlighter.updateHighlights(cm, suggestions.suggestions);
+                }
             }
 
             // Update sidebar if open
@@ -205,7 +214,7 @@ export default class SmartWriteCompanionPlugin extends Plugin {
         }
     }
 
-    private updateSidebar(stats: any, suggestions: any, readability: any): void {
+    private updateSidebar(stats: import('./types').TextStats, suggestions: import('./types').SuggestionsResult, readability: import('./types').ReadabilityScores): void {
         // Find sidebar view and update it
         const leaves = this.app.workspace.getLeavesOfType('smartwrite-sidebar');
         if (leaves.length > 0) {

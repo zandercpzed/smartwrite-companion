@@ -19,7 +19,7 @@ export class PersonaPanel extends BasePanel {
 
         // Check if Ollama is enabled
         if (!this.plugin.settings.ollamaEnabled) {
-            const hint = container.createDiv({ cls: 'smartwrite-suggestion-description', attr: { style: 'margin-top: 12px; font-style: italic; opacity: 0.7;' } });
+            const hint = container.createDiv({ cls: 'smartwrite-suggestion-description smartwrite-mt-12-italic-o7' });
             hint.setText('Enable Ollama in settings to use AI-powered features.');
             return;
         }
@@ -39,18 +39,18 @@ export class PersonaPanel extends BasePanel {
 
     private renderAnalysisInterface(container: HTMLElement): void {
         // Mode Selector (Analyze vs Translate)
-        const modeContainer = container.createDiv({ cls: 'smartwrite-control-group', attr: { style: 'margin-bottom: 15px;' } });
+        const modeContainer = container.createDiv({ cls: 'smartwrite-control-group smartwrite-mb-15' });
         modeContainer.createEl('label', { text: 'Mode' });
         
-        const modeSelect = modeContainer.createEl('select', { cls: 'dropdown', attr: { style: 'width: 100%;' } });
+        const modeSelect = modeContainer.createEl('select', { cls: 'dropdown smartwrite-w100' });
         modeSelect.createEl('option', { value: 'analyze', text: '🧐 Analyze (Personas)' });
         modeSelect.createEl('option', { value: 'translate', text: '🌍 Translate' });
 
         // 1. Target Selector (Current File vs Configured Longform Project)
-        const targetSection = container.createDiv({ cls: 'smartwrite-stat-item', attr: { style: 'margin-bottom: 12px;' } });
+        const targetSection = container.createDiv({ cls: 'smartwrite-stat-item smartwrite-mb-12' });
         targetSection.createDiv({ cls: 'smartwrite-stat-label' }).setText('Analysis Target');
         
-        const targetSelect = targetSection.createEl('select', { cls: 'dropdown', attr: { style: 'width: 100%;' } });
+        const targetSelect = targetSection.createEl('select', { cls: 'dropdown smartwrite-w100' });
         
         // Default Option
         // Default Option
@@ -70,7 +70,7 @@ export class PersonaPanel extends BasePanel {
         }
 
         // 2. Persona Selector
-        const selectorSection = container.createDiv({ cls: 'smartwrite-stat-item', attr: { style: 'margin-bottom: 16px;' } });
+        const selectorSection = container.createDiv({ cls: 'smartwrite-stat-item smartwrite-mb-16' });
         selectorSection.createDiv({ cls: 'smartwrite-stat-label' }).setText('Select Persona');
 
         const personas = this.plugin.personaManager.listPersonas();
@@ -94,8 +94,7 @@ export class PersonaPanel extends BasePanel {
         const selectedPersona = personas.find(p => p.id === this.plugin.settings.selectedPersona);
         if (selectedPersona) {
             const description = container.createDiv({ 
-                cls: 'smartwrite-suggestion-description', 
-                attr: { style: 'margin-bottom: 12px; font-style: italic; font-size: 11px;' } 
+                cls: 'smartwrite-suggestion-description smartwrite-mb-12-italic-f11'
             });
             description.setText(selectedPersona.description);
         }
@@ -104,9 +103,7 @@ export class PersonaPanel extends BasePanel {
         const langContainer = container.createEl('div', { cls: 'smartwrite-control-group' });
         langContainer.createEl('label', { text: 'Response Language' });
         
-        const langSelect = langContainer.createEl('select');
-        langSelect.style.width = '100%';
-        langSelect.style.marginBottom = '15px';
+        const langSelect = langContainer.createEl('select', { cls: 'smartwrite-w100 smartwrite-mb-15' });
 
         const languages = [
             { value: 'auto', label: 'Auto (Match Input)' },
@@ -134,19 +131,18 @@ export class PersonaPanel extends BasePanel {
         // Analyze/Translate button
         const actionButton = container.createEl('button', {
             text: 'Analyze Text',
-            cls: 'mod-cta',
-            attr: { style: 'width: 100%; margin-bottom: 16px;' }
+            cls: 'mod-cta smartwrite-w100 smartwrite-mb-16'
         });
 
         // Mode Change Handler
         modeSelect.addEventListener('change', () => {
             if (modeSelect.value === 'translate') {
-                selectorSection.style.display = 'none'; // Hide personas
+                selectorSection.addClass('is-hidden'); // Hide personas
                 actionButton.setText('Translate Text');
                 actionButton.classList.remove('mod-cta');
                 actionButton.classList.add('mod-warning'); // Different color
             } else {
-                selectorSection.style.display = 'block'; // Show personas
+                selectorSection.removeClass('is-hidden'); // Show personas
                 actionButton.setText('Analyze Text');
                 actionButton.classList.add('mod-cta');
                 actionButton.classList.remove('mod-warning');
@@ -172,60 +168,59 @@ export class PersonaPanel extends BasePanel {
         // ... (existing implementation unchanged) ...
         const title = container.createEl('h3', { 
             text: '🚀 Setup Ollama', 
-            attr: { style: 'margin-bottom: 16px; color: var(--text-accent);' } 
+            cls: 'smartwrite-mb-16-accent' 
         });
 
         // Option selector
-        const optionHeader = container.createDiv({ cls: 'smartwrite-stat-label', attr: { style: 'margin-bottom: 12px;' } });
+        const optionHeader = container.createDiv({ cls: 'smartwrite-stat-label smartwrite-mb-12' });
         optionHeader.setText('Choose Installation Method:');
 
         // Option 1: GUI App
-        const option1 = container.createDiv({ cls: 'smartwrite-stat-item', attr: { style: 'margin-bottom: 16px; padding: 12px; background: var(--background-secondary); border-radius: 6px;' } });
+        const option1 = container.createDiv({ cls: 'smartwrite-stat-item smartwrite-mb-16 smartwrite-p12-bg2-r6' });
         option1.createEl('strong', { text: '📱 Option 1: Ollama App (Menu Bar Icon)' });
         option1.createEl('br');
         
-        const step1a = option1.createDiv({ attr: { style: 'margin-top: 8px; margin-left: 12px;' } });
-        step1a.createSpan({ text: '1. ', attr: { style: 'font-weight: bold;' } });
+        const step1a = option1.createDiv({ cls: 'smartwrite-mt-8-ml-12' });
+        step1a.createSpan({ text: '1. ', cls: 'smartwrite-fw-bold' });
         const downloadLink = step1a.createEl('a', {
             text: 'Download Ollama',
             href: 'https://ollama.ai/download',
-            attr: { style: 'color: var(--interactive-accent); text-decoration: underline;' }
+            cls: 'smartwrite-link-accent'
         });
         downloadLink.setAttr('target', '_blank');
         
-        const step2a = option1.createDiv({ attr: { style: 'margin-left: 12px;' } });
-        step2a.createSpan({ text: '2. ', attr: { style: 'font-weight: bold;' } });
+        const step2a = option1.createDiv({ cls: 'smartwrite-ml-12' });
+        step2a.createSpan({ text: '2. ', cls: 'smartwrite-fw-bold' });
         step2a.appendText('Drag to Applications folder');
         
-        const step3a = option1.createDiv({ attr: { style: 'margin-left: 12px;' } });
-        step3a.createSpan({ text: '3. ', attr: { style: 'font-weight: bold;' } });
+        const step3a = option1.createDiv({ cls: 'smartwrite-ml-12' });
+        step3a.createSpan({ text: '3. ', cls: 'smartwrite-fw-bold' });
         step3a.appendText('Launch Ollama.app');
 
         // Option 2: Daemon (Recommended)
-        const option2 = container.createDiv({ cls: 'smartwrite-stat-item', attr: { style: 'margin-bottom: 16px; padding: 12px; background: var(--background-secondary); border-radius: 6px; border: 2px solid var(--interactive-accent);' } });
+        const option2 = container.createDiv({ cls: 'smartwrite-stat-item smartwrite-mb-16 smartwrite-p12-bg2-r6-accent-border' });
         option2.createEl('strong', { text: '👻 Option 2: Background Service (Recommended)' });
         option2.createEl('br');
-        option2.createSpan({ text: 'Completely invisible, no menu bar icon', attr: { style: 'font-size: 11px; color: var(--text-muted);' } });
+        option2.createSpan({ text: 'Completely invisible, no menu bar icon', cls: 'smartwrite-mb-12-italic-f11' });
         
-        const brewNote = option2.createDiv({ attr: { style: 'margin-top: 8px; font-size: 12px; font-style: italic;' } });
+        const brewNote = option2.createDiv({ cls: 'smartwrite-mt-8-f12-italic' });
         brewNote.setText('Requirements: Homebrew installed');
         
         const brewLink = option2.createEl('a', {
             text: 'Install Homebrew',
             href: 'https://brew.sh',
-            attr: { style: 'color: var(--interactive-accent); text-decoration: underline; font-size: 11px; margin-left: 4px;' }
+            cls: 'smartwrite-link-accent smartwrite-f11-ml-4'
         });
         brewLink.setAttr('target', '_blank');
 
         const codeBlock = option2.createEl('pre', { 
-            attr: { style: 'margin-top: 8px; padding: 8px; background: var(--background-primary); border-radius: 4px; font-size: 11px; overflow-x: auto;' }
+            cls: 'smartwrite-mt-8-p8-bg1-r4-f11'
         });
         codeBlock.createEl('code', { text: 'brew install ollama\nbrew services start ollama' });
 
         // Info box
         const infoBox = container.createDiv({ 
-            cls: 'smartwrite-suggestion-description', 
-            attr: { style: 'margin-top: 16px; padding: 12px; background: var(--background-secondary); border-radius: 6px; border-left: 3px solid var(--text-accent);' } 
+            cls: 'smartwrite-suggestion-description smartwrite-mt-16-p12-bg2-r6-accent-left'
         });
         infoBox.createEl('strong', { text: '💡 100% Local & Free' });
         infoBox.createEl('br');
@@ -236,8 +231,7 @@ export class PersonaPanel extends BasePanel {
         // Retry button
         const retryButton = container.createEl('button', {
             text: 'Check Connection',
-            cls: 'mod-cta',
-            attr: { style: 'margin-top: 16px; width: 100%;' }
+            cls: 'mod-cta smartwrite-mt-16 smartwrite-w100'
         });
         
         retryButton.addEventListener('click', async () => {
@@ -264,12 +258,11 @@ export class PersonaPanel extends BasePanel {
         this.contentEl.empty();
         const container = this.contentEl.createDiv({ cls: 'smartwrite-persona-container' });
         
-        const title = container.createEl('h3', { text: 'Installing Model', attr: { style: 'margin-bottom: 12px;' } });
+        const title = container.createEl('h3', { text: 'Installing Model', cls: 'smartwrite-mb-12' });
         
         const statusText = container.createDiv({ 
-            cls: 'smartwrite-stat-label', 
-            text: progress.status || 'Downloading...',
-            attr: { style: 'margin-bottom: 8px;' }
+            cls: 'smartwrite-stat-label smartwrite-mb-12', 
+            text: progress.status || 'Downloading...'
         });
         
         if (progress.percent !== undefined) {
@@ -278,9 +271,8 @@ export class PersonaPanel extends BasePanel {
             progressFill.style.width = `${progress.percent}%`;
             
             const percentText = container.createDiv({ 
-                cls: 'smartwrite-stat-mono', 
-                text: `${progress.percent}%`,
-                attr: { style: 'margin-top: 4px; text-align: center;' }
+                cls: 'smartwrite-stat-mono smartwrite-mt-4-text-center', 
+                text: `${progress.percent}%`
             });
         }
     }
@@ -308,8 +300,7 @@ export class PersonaPanel extends BasePanel {
                 if (resultsContainer) {
                     resultsContainer.empty();
                     const errorDiv = resultsContainer.createDiv({ 
-                        cls: 'smartwrite-suggestion-description',
-                        attr: { style: 'color: var(--text-error); padding: 12px; background: var(--background-secondary); border-radius: 6px;' }
+                        cls: 'smartwrite-suggestion-description smartwrite-error-box'
                     });
                     errorDiv.setText(`Error: ${result.error}`);
                 }
@@ -320,8 +311,7 @@ export class PersonaPanel extends BasePanel {
                 if (resultsContainer) {
                     resultsContainer.empty();
                     const successDiv = resultsContainer.createDiv({ 
-                        cls: 'smartwrite-suggestion-description',
-                        attr: { style: 'color: var(--text-success); padding: 12px; background: var(--background-secondary); border-radius: 6px;' }
+                        cls: 'smartwrite-suggestion-description smartwrite-success-box'
                     });
                     successDiv.setText('✅ Analysis Document Created!');
                 }

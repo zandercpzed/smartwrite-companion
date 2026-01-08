@@ -101,8 +101,7 @@ export class SidebarView extends ItemView {
     }
 
     private createSettingsPanel(container: HTMLElement): void {
-        this.settingsPanel = container.createDiv({ cls: 'smartwrite-settings-panel' });
-        this.settingsPanel.style.display = 'none'; // Hidden by default
+        this.settingsPanel = container.createDiv({ cls: 'smartwrite-settings-panel is-hidden' });
 
         // Title removed as per user request
 
@@ -132,7 +131,7 @@ export class SidebarView extends ItemView {
     private toggleSettingsPanel(): void {
         this.isSettingsOpen = !this.isSettingsOpen;
         if (this.settingsPanel) {
-            this.settingsPanel.style.display = this.isSettingsOpen ? 'block' : 'none';
+            this.settingsPanel.toggleClass('is-hidden', !this.isSettingsOpen);
         }
     }
 

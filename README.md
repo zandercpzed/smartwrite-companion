@@ -26,19 +26,19 @@ An intelligent writing assistant plugin for Obsidian that helps you write better
    **🍎 macOS**:
 
    ```bash
-   ./install_mac.sh
+   ./scripts/installers/install_mac.sh
    ```
 
    **🐧 Linux**:
 
    ```bash
-   ./install_linux.sh
+   ./scripts/installers/install_linux.sh
    ```
 
    **🪟 Windows (PowerShell)**:
 
    ```powershell
-   .\install_windows.ps1
+   .\scripts\installers\install_windows.ps1
    ```
 
    The installer will:

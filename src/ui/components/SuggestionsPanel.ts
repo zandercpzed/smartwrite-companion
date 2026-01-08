@@ -1,6 +1,7 @@
 import { BasePanel } from './BasePanel';
 import { SuggestionsResult } from '../../types';
 import SmartWriteCompanionPlugin from "../../main";
+import { MarkdownView } from 'obsidian';
 
 export class SuggestionsPanel extends BasePanel {
     private plugin: SmartWriteCompanionPlugin;
@@ -112,11 +113,11 @@ export class SuggestionsPanel extends BasePanel {
                         detailItem.createSpan({ cls: 'smartwrite-detail-text' }).setText(instance.message || group.type);
                         
                         // Add click to focus in editor
-                        detailItem.style.cursor = 'pointer';
+                        detailItem.addClass('smartwrite-pointer');
                         detailItem.addEventListener('click', (e) => {
                             e.stopPropagation();
                             if (instance.position && instance.position.start !== undefined) {
-                                const activeView = (this.plugin as any).app.workspace.getActiveViewOfType(require('obsidian').MarkdownView);
+                                const activeView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
                                 if (activeView) {
                                     activeView.editor.setSelection(
                                         activeView.editor.offsetToPos(instance.position.start),

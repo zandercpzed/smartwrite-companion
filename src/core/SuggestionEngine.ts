@@ -48,7 +48,7 @@ export class SuggestionEngine {
         }
     }
 
-    analyze(text: string, metrics: TextMetrics): SuggestionsResult {
+    async analyze(text: string, metrics: TextMetrics): Promise<SuggestionsResult> {
         const suggestions: Suggestion[] = [];
 
         // Detect repetitions
@@ -67,7 +67,7 @@ export class SuggestionEngine {
         suggestions.push(...this.detectComplexWords(text, metrics.words));
 
         // Use write-good for additional suggestions
-        suggestions.push(...this.useWriteGood(text));
+        suggestions.push(...(await this.useWriteGood(text)));
 
         const summary = this.createSummary(suggestions);
 
@@ -185,11 +185,11 @@ export class SuggestionEngine {
         return results;
     }
 
-    private useWriteGood(text: string): Suggestion[] {
+    private async useWriteGood(text: string): Promise<Suggestion[]> {
         const results: Suggestion[] = [];
         try {
-            const writeGood = require('write-good');
-            const suggestions_raw = writeGood(text, {
+            const writeGood = (await import('write-good')).default;
+            const suggestions_raw = (writeGood as any)(text, {
                 passive: false, // Handled separately
                 illusion: true,
                 so: true,
@@ -200,6 +200,7 @@ export class SuggestionEngine {
                 cliches: false, // Handled separately
             });
             
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             suggestions_raw.forEach((s: any) => {
                  results.push({
                      id: `grammar-${s.index}`,

@@ -133,55 +133,15 @@ export class OllamaService {
         onProgress?: (progress: { status: string; percent?: number; total?: number; completed?: number }) => void
     ): Promise<boolean> {
         try {
-            const response = await fetch(`${this.endpoint}/api/pull`, {
+            const response = await requestUrl({
+                url: `${this.endpoint}/api/pull`,
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: modelName, stream: true })
+                body: JSON.stringify({ name: modelName, stream: false })
             });
 
-            if (!response.ok) {
-                throw new Error(`Failed to pull model: ${response.statusText}`);
-            }
-
-            const reader = response.body?.getReader();
-            const decoder = new TextDecoder();
-
-            if (!reader) {
-                throw new Error('Response body is not readable');
-            }
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                const chunk = decoder.decode(value, { stream: true });
-                const lines = chunk.split('\n').filter(line => line.trim());
-
-                for (const line of lines) {
-                    try {
-                        const data = JSON.parse(line);
-                        
-                        if (onProgress) {
-                            const percent = data.total && data.completed
-                                ? Math.round((data.completed / data.total) * 100)
-                                : undefined;
-                            
-                            onProgress({
-                                status: data.status || 'downloading',
-                                percent,
-                                total: data.total,
-                                completed: data.completed
-                            });
-                        }
-
-                        if (data.status === 'success') {
-                            return true;
-                        }
-                    } catch (e) {
-                        // Skip invalid JSON lines
-                        console.debug('Skipping invalid JSON:', line);
-                    }
-                }
+            if (response.status !== 200) {
+                throw new Error(`Failed to pull model: ${response.status}`);
             }
 
             return true;
@@ -214,7 +174,7 @@ export class OllamaService {
      * Generates a completion using the selected model.
      * This is a base implementation for future features.
      */
-    async generateCompletion(prompt: string, options: any = {}): Promise<string> {
+    async generateCompletion(prompt: string, options: Record<string, unknown> = {}): Promise<string> {
         if (!this.plugin.settings.ollamaEnabled) {
             throw new Error('Ollama is disabled in settings.');
         }

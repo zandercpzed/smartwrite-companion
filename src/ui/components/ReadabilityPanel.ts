@@ -26,7 +26,8 @@ export class ReadabilityPanel extends BasePanel {
         // Large Score (Matches Session Stats big number)
         const largeStat = this.contentEl.createDiv({ cls: 'smartwrite-stat-large' });
         largeStat.createDiv({ cls: 'smartwrite-stat-value' }).setText(score.toFixed(1));
-        largeStat.createDiv({ cls: 'smartwrite-stat-label' }).setText(preferred.replace(/([A-Z])/g, ' $1').toLowerCase());
+        const formulaName = preferred.replace(/([A-Z])/g, ' $1').toLowerCase();
+        largeStat.createDiv({ cls: 'smartwrite-stat-label' }).setText(formulaName.charAt(0).toUpperCase() + formulaName.slice(1));
 
         // Level & Progress Bar (Matches Session Stats goal bar)
         const progressContainer = this.contentEl.createDiv({ cls: 'smartwrite-stat-item' });
@@ -44,14 +45,16 @@ export class ReadabilityPanel extends BasePanel {
         } else {
             percent = Math.max(0, Math.min(100, 100 - (score * 5)));
         }
-        progressFill.style.width = `${percent}%`;
+        progressFill.addClass('smartwrite-progress-fill');
+        progressFill.setCssProps({ '--progress-width': `${percent}%` });
+        progressFill.style.width = 'var(--progress-width)';
 
-        // Interpretation (Matches font size/style of other labels or primary text)
-        const interpretation = this.contentEl.createDiv({ cls: 'smartwrite-suggestion-description', attr: { style: 'margin-top: 12px; font-style: italic; opacity: 0.8;' } });
+        // Interpretation
+        const interpretation = this.contentEl.createDiv({ cls: 'smartwrite-suggestion-description smartwrite-italic-o8' });
         interpretation.setText(this.scores.interpretation);
 
         // Formula Selector (Footer)
-        const footer = this.contentEl.createDiv({ cls: 'smartwrite-readability-footer', attr: { style: 'margin-top: 16px;' } });
+        const footer = this.contentEl.createDiv({ cls: 'smartwrite-readability-footer smartwrite-mt-16' });
         const select = footer.createEl('select', { cls: 'smartwrite-formula-dropdown' });
         
         const formulas = [

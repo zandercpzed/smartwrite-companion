@@ -2578,7 +2578,7 @@ __export(main_exports, {
   default: () => SmartWriteCompanionPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian7 = require("obsidian");
+var import_obsidian8 = require("obsidian");
 
 // src/settings.ts
 var import_obsidian = require("obsidian");
@@ -2634,9 +2634,9 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
         this.plugin.settings.ollamaEndpoint = value;
         await this.plugin.saveSettings();
       }));
-      containerEl.createEl("h4", { text: "Manage Models", attr: { style: "margin-top: 20px; margin-bottom: 10px;" } });
+      containerEl.createEl("h3", { text: "Manage Models", cls: "smartwrite-mt-20-mb-10" });
       const modelsContainer = containerEl.createDiv({ cls: "smartwrite-models-container" });
-      this.renderModelsSection(modelsContainer);
+      void this.renderModelsSection(modelsContainer);
     }
     new import_obsidian.Setting(containerEl).setName("Output Language").setDesc("Default language for AI responses (Auto matches input text)").addDropdown((dropdown) => dropdown.addOption("auto", "Auto (Match Input)").addOption("pt-br", "Portuguese (BR)").addOption("en-us", "English (US)").addOption("es", "Spanish").addOption("fr", "French").addOption("de", "German").setValue(this.plugin.settings.outputLanguage).onChange(async (value) => {
       this.plugin.settings.outputLanguage = value;
@@ -2664,7 +2664,7 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
     }
   }
   async renderModelsSection(container) {
-    const { Notice: Notice2, setIcon } = require("obsidian");
+    const { Notice: Notice2, setIcon } = import("obsidian").then((m) => m);
     container.empty();
     const RECOMMENDED_MODELS = [
       { id: "qwen2.5:0.5b", name: "Qwen 2.5 (0.5B)", size: "~380MB", desc: "Ultra-lightweight, fast. Good for basic tasks." },
@@ -2675,7 +2675,7 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
     ];
     const isConnected = await this.plugin.ollamaService.checkConnection();
     if (!isConnected) {
-      const errorDiv = container.createDiv({ cls: "smartwrite-setting-error", attr: { style: "color: var(--text-error); padding: 10px; background: var(--background-secondary); border-radius: 5px;" } });
+      const errorDiv = container.createDiv({ cls: "smartwrite-setting-error smartwrite-error-box" });
       errorDiv.setText("\u26A0\uFE0F Ollama is not connected. Please start Ollama to manage models.");
       return;
     }
@@ -2684,15 +2684,15 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
     for (const model of RECOMMENDED_MODELS) {
       const isInstalled = installedNames.has(model.id) || installedNames.has(`${model.id}:latest`);
       const isSelected = this.plugin.settings.ollamaModel === model.id;
-      const modelRow = container.createDiv({ cls: "smartwrite-model-row", attr: { style: "display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--background-secondary); border-radius: 6px; margin-bottom: 8px;" } });
-      const infoDiv = modelRow.createDiv({ cls: "model-info", attr: { style: "flex: 1;" } });
-      const nameEl = infoDiv.createDiv({ cls: "model-name", attr: { style: "font-weight: bold; font-size: 13px;" } });
+      const modelRow = container.createDiv({ cls: "smartwrite-model-row smartwrite-model-item" });
+      const infoDiv = modelRow.createDiv({ cls: "model-info smartwrite-flex-1" });
+      const nameEl = infoDiv.createDiv({ cls: "model-name smartwrite-fw-bold smartwrite-f13" });
       nameEl.setText(model.name);
       if (isSelected) {
-        nameEl.createSpan({ text: " (Active)", attr: { style: "color: var(--text-success); font-size: 11px; margin-left: 5px;" } });
+        nameEl.createSpan({ text: " (Active)", cls: "smartwrite-model-active-badge" });
       }
-      infoDiv.createDiv({ cls: "model-meta", attr: { style: "font-size: 11px; color: var(--text-muted); margin-top: 2px;" } }).setText(`${model.id} \u2022 ${model.size} \u2022 ${model.desc}`);
-      const actionsDiv = modelRow.createDiv({ cls: "model-actions", attr: { style: "display: flex; gap: 8px; align-items: center;" } });
+      infoDiv.createDiv({ cls: "model-meta smartwrite-model-info-meta" }).setText(`${model.id} \u2022 ${model.size} \u2022 ${model.desc}`);
+      const actionsDiv = modelRow.createDiv({ cls: "model-actions smartwrite-model-row-actions" });
       if (isInstalled) {
         if (!isSelected) {
           const selectBtn = actionsDiv.createEl("button", { text: "Select" });
@@ -2703,8 +2703,8 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
             this.renderModelsSection(container);
           });
         }
-        const deleteBtn = actionsDiv.createEl("button", { cls: "clickable-icon destructive", attr: { style: "background: transparent; border: none; color: var(--text-muted); box-shadow: none;" } });
-        setIcon(deleteBtn, "trash");
+        const deleteBtn = actionsDiv.createEl("button", { cls: "clickable-icon destructive smartwrite-model-delete-btn" });
+        import("obsidian").then(({ setIcon: setIcon2 }) => setIcon2(deleteBtn, "trash"));
         deleteBtn.setAttribute("aria-label", "Uninstall Model");
         deleteBtn.addEventListener("click", async () => {
           if (confirm(`Are you sure you want to uninstall ${model.name}?`)) {
@@ -2754,7 +2754,7 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
 };
 
 // src/SidebarView.ts
-var import_obsidian4 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 
 // src/ui/components/BasePanel.ts
 var import_obsidian2 = require("obsidian");
@@ -2776,8 +2776,7 @@ var BasePanel = class extends import_obsidian2.Component {
     });
     const titleEl = this.headerEl.createDiv({ cls: "smartwrite-panel-title" });
     titleEl.setText(title);
-    this.badgeEl = this.headerEl.createDiv({ cls: "smartwrite-count-badge" });
-    this.badgeEl.style.display = "none";
+    this.badgeEl = this.headerEl.createDiv({ cls: "smartwrite-count-badge is-hidden" });
     this.headerEl.addEventListener("click", () => this.toggle());
     this.contentEl = this.panelEl.createDiv({ cls: "smartwrite-panel-content" });
     this.renderContent();
@@ -2785,10 +2784,10 @@ var BasePanel = class extends import_obsidian2.Component {
   updateBadge(text) {
     if (!this.badgeEl) return;
     if (text === void 0 || text === null || text === "") {
-      this.badgeEl.style.display = "none";
+      this.badgeEl.addClass("is-hidden");
     } else {
       this.badgeEl.setText(String(text));
-      this.badgeEl.style.display = "block";
+      this.badgeEl.removeClass("is-hidden");
     }
   }
   updateContent(data) {
@@ -2797,10 +2796,10 @@ var BasePanel = class extends import_obsidian2.Component {
     this.isCollapsed = !this.isCollapsed;
     const toggleEl = this.headerEl.querySelector(".smartwrite-panel-toggle");
     if (this.isCollapsed) {
-      this.contentEl.style.display = "none";
+      this.contentEl.addClass("is-hidden");
       if (toggleEl) toggleEl.setText("\u25B6");
     } else {
-      this.contentEl.style.display = "block";
+      this.contentEl.removeClass("is-hidden");
       if (toggleEl) toggleEl.setText("\u25BC");
     }
   }
@@ -2808,10 +2807,10 @@ var BasePanel = class extends import_obsidian2.Component {
     return this.containerEl;
   }
   show() {
-    if (this.panelEl) this.panelEl.style.display = "block";
+    if (this.panelEl) this.panelEl.removeClass("is-hidden");
   }
   hide() {
-    if (this.panelEl) this.panelEl.style.display = "none";
+    if (this.panelEl) this.panelEl.addClass("is-hidden");
   }
 };
 
@@ -2839,20 +2838,21 @@ var SessionStatsPanel = class extends BasePanel {
       const percent = this.calculateProgress(current, goal);
       const largeStat = this.contentEl.createDiv({ cls: "smartwrite-stat-large" });
       largeStat.createDiv({ cls: "smartwrite-stat-value" }).setText(`${this.formatNumber(sessionWords)}`);
-      largeStat.createDiv({ cls: "smartwrite-stat-label" }).setText("words");
+      largeStat.createDiv({ cls: "smartwrite-stat-label" }).setText("Words");
       const goalContainer = this.contentEl.createDiv({ cls: "smartwrite-stat-item" });
       const goalRow = goalContainer.createDiv({ cls: "smartwrite-stat-row" });
       goalRow.createSpan({ cls: "smartwrite-stat-label" }).setText("Today's goal");
       goalRow.createSpan({ cls: "smartwrite-stat-mono" }).setText(`${this.formatNumber(current)} / ${this.formatNumber(goal)}`);
       const progressBar = goalContainer.createDiv({ cls: "smartwrite-progress-bar" });
       const progressFill = progressBar.createDiv({ cls: "smartwrite-progress-fill" });
-      progressFill.style.width = `${percent}%`;
+      progressFill.setCssProps({ "--progress-width": `${percent}%` });
+      progressFill.style.width = "var(--progress-width)";
       const statsGrid = this.contentEl.createDiv({ cls: "smartwrite-stats-grid" });
       const timeItem = statsGrid.createDiv({ cls: "smartwrite-stat-item" });
-      timeItem.createDiv({ cls: "smartwrite-stat-label" }).setText("Session time");
+      timeItem.createDiv({ cls: "smartwrite-stat-label" }).setText("Session Time");
       timeItem.createDiv({ cls: "smartwrite-stat-mono" }).setText(this.formatTime(sessionStats ? sessionStats.timeSpent : 0));
       const paceItem = statsGrid.createDiv({ cls: "smartwrite-stat-item" });
-      paceItem.createDiv({ cls: "smartwrite-stat-label" }).setText("Writing pace");
+      paceItem.createDiv({ cls: "smartwrite-stat-label" }).setText("Writing Pace");
       paceItem.createDiv({ cls: "smartwrite-stat-mono" }).setText(`${sessionStats ? Math.round(sessionStats.wpm) : 0} wpm`);
     } catch (error) {
       console.error("CRITICAL ERROR in SessionStatsPanel:", error);
@@ -2898,8 +2898,8 @@ var TextMetricsPanel = class extends BasePanel {
     this.createMetricRow(metricsDiv, "No spaces", `${this.stats.characterCountNoSpaces.toLocaleString()}`, true);
     this.createMetricRow(metricsDiv, "Sentences", `${this.stats.sentenceCount.toLocaleString()}`);
     this.createMetricRow(metricsDiv, "Paragraphs", `${this.stats.paragraphCount.toLocaleString()}`);
-    this.createMetricRow(metricsDiv, "Reading time", this.plugin.statsEngine.formatTime(this.stats.readingTimeMinutes));
-    this.createMetricRow(metricsDiv, "Unique words", `${this.stats.wordFrequency.size.toLocaleString()}`);
+    this.createMetricRow(metricsDiv, "Reading Time", this.plugin.statsEngine.formatTime(this.stats.readingTimeMinutes));
+    this.createMetricRow(metricsDiv, "Unique Words", `${this.stats.wordFrequency.size.toLocaleString()}`);
   }
   createMetricRow(container, label, value, indent = false) {
     const row = container.createDiv({ cls: "smartwrite-metric-row" });
@@ -2914,6 +2914,7 @@ var TextMetricsPanel = class extends BasePanel {
 };
 
 // src/ui/components/SuggestionsPanel.ts
+var import_obsidian3 = require("obsidian");
 var SuggestionsPanel = class extends BasePanel {
   constructor(containerEl, plugin) {
     super(containerEl, "Suggestions");
@@ -2992,11 +2993,11 @@ var SuggestionsPanel = class extends BasePanel {
           } else {
             detailItem.addClass("smartwrite-simple-item");
             detailItem.createSpan({ cls: "smartwrite-detail-text" }).setText(instance.message || group.type);
-            detailItem.style.cursor = "pointer";
+            detailItem.addClass("smartwrite-pointer");
             detailItem.addEventListener("click", (e) => {
               e.stopPropagation();
               if (instance.position && instance.position.start !== void 0) {
-                const activeView = this.plugin.app.workspace.getActiveViewOfType(require("obsidian").MarkdownView);
+                const activeView = this.plugin.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
                 if (activeView) {
                   activeView.editor.setSelection(
                     activeView.editor.offsetToPos(instance.position.start),
@@ -3038,7 +3039,8 @@ var ReadabilityPanel = class extends BasePanel {
     const score = this.scores[preferred] || 0;
     const largeStat = this.contentEl.createDiv({ cls: "smartwrite-stat-large" });
     largeStat.createDiv({ cls: "smartwrite-stat-value" }).setText(score.toFixed(1));
-    largeStat.createDiv({ cls: "smartwrite-stat-label" }).setText(preferred.replace(/([A-Z])/g, " $1").toLowerCase());
+    const formulaName = preferred.replace(/([A-Z])/g, " $1").toLowerCase();
+    largeStat.createDiv({ cls: "smartwrite-stat-label" }).setText(formulaName.charAt(0).toUpperCase() + formulaName.slice(1));
     const progressContainer = this.contentEl.createDiv({ cls: "smartwrite-stat-item" });
     const levelRow = progressContainer.createDiv({ cls: "smartwrite-stat-row" });
     levelRow.createSpan({ cls: "smartwrite-stat-label" }).setText("Overall Level");
@@ -3051,10 +3053,12 @@ var ReadabilityPanel = class extends BasePanel {
     } else {
       percent = Math.max(0, Math.min(100, 100 - score * 5));
     }
-    progressFill.style.width = `${percent}%`;
-    const interpretation = this.contentEl.createDiv({ cls: "smartwrite-suggestion-description", attr: { style: "margin-top: 12px; font-style: italic; opacity: 0.8;" } });
+    progressFill.addClass("smartwrite-progress-fill");
+    progressFill.setCssProps({ "--progress-width": `${percent}%` });
+    progressFill.style.width = "var(--progress-width)";
+    const interpretation = this.contentEl.createDiv({ cls: "smartwrite-suggestion-description smartwrite-italic-o8" });
     interpretation.setText(this.scores.interpretation);
-    const footer = this.contentEl.createDiv({ cls: "smartwrite-readability-footer", attr: { style: "margin-top: 16px;" } });
+    const footer = this.contentEl.createDiv({ cls: "smartwrite-readability-footer smartwrite-mt-16" });
     const select = footer.createEl("select", { cls: "smartwrite-formula-dropdown" });
     const formulas = [
       { id: "fleschReadingEase", name: "Flesch Reading Ease" },
@@ -3081,7 +3085,7 @@ var ReadabilityPanel = class extends BasePanel {
 };
 
 // src/ui/components/PersonaPanel.ts
-var import_obsidian3 = require("obsidian");
+var import_obsidian4 = require("obsidian");
 var PersonaPanel = class extends BasePanel {
   constructor(containerEl, plugin) {
     super(containerEl, "Persona Analysis");
@@ -3092,7 +3096,7 @@ var PersonaPanel = class extends BasePanel {
     this.contentEl.empty();
     const container = this.contentEl.createDiv({ cls: "smartwrite-persona-container" });
     if (!this.plugin.settings.ollamaEnabled) {
-      const hint = container.createDiv({ cls: "smartwrite-suggestion-description", attr: { style: "margin-top: 12px; font-style: italic; opacity: 0.7;" } });
+      const hint = container.createDiv({ cls: "smartwrite-suggestion-description smartwrite-mt-12-italic-o7" });
       hint.setText("Enable Ollama in settings to use AI-powered features.");
       return;
     }
@@ -3104,14 +3108,14 @@ var PersonaPanel = class extends BasePanel {
     this.renderAnalysisInterface(container);
   }
   renderAnalysisInterface(container) {
-    const modeContainer = container.createDiv({ cls: "smartwrite-control-group", attr: { style: "margin-bottom: 15px;" } });
+    const modeContainer = container.createDiv({ cls: "smartwrite-control-group smartwrite-mb-15" });
     modeContainer.createEl("label", { text: "Mode" });
-    const modeSelect = modeContainer.createEl("select", { cls: "dropdown", attr: { style: "width: 100%;" } });
+    const modeSelect = modeContainer.createEl("select", { cls: "dropdown smartwrite-w100" });
     modeSelect.createEl("option", { value: "analyze", text: "\u{1F9D0} Analyze (Personas)" });
     modeSelect.createEl("option", { value: "translate", text: "\u{1F30D} Translate" });
-    const targetSection = container.createDiv({ cls: "smartwrite-stat-item", attr: { style: "margin-bottom: 12px;" } });
+    const targetSection = container.createDiv({ cls: "smartwrite-stat-item smartwrite-mb-12" });
     targetSection.createDiv({ cls: "smartwrite-stat-label" }).setText("Analysis Target");
-    const targetSelect = targetSection.createEl("select", { cls: "dropdown", attr: { style: "width: 100%;" } });
+    const targetSelect = targetSection.createEl("select", { cls: "dropdown smartwrite-w100" });
     const defaultOption = targetSelect.createEl("option", { value: "current" });
     defaultOption.setText("\u{1F4C4} Current File");
     if (this.plugin.settings.longformEnabled && this.plugin.settings.longformProjectPath) {
@@ -3122,7 +3126,7 @@ var PersonaPanel = class extends BasePanel {
         option.setText(`\u{1F4DA} Longform: ${configuredProject.name}`);
       }
     }
-    const selectorSection = container.createDiv({ cls: "smartwrite-stat-item", attr: { style: "margin-bottom: 16px;" } });
+    const selectorSection = container.createDiv({ cls: "smartwrite-stat-item smartwrite-mb-16" });
     selectorSection.createDiv({ cls: "smartwrite-stat-label" }).setText("Select Persona");
     const personas = this.plugin.personaManager.listPersonas();
     const select = selectorSection.createEl("select", { cls: "dropdown" });
@@ -3141,16 +3145,13 @@ var PersonaPanel = class extends BasePanel {
     const selectedPersona = personas.find((p) => p.id === this.plugin.settings.selectedPersona);
     if (selectedPersona) {
       const description = container.createDiv({
-        cls: "smartwrite-suggestion-description",
-        attr: { style: "margin-bottom: 12px; font-style: italic; font-size: 11px;" }
+        cls: "smartwrite-suggestion-description smartwrite-mb-12-italic-f11"
       });
       description.setText(selectedPersona.description);
     }
     const langContainer = container.createEl("div", { cls: "smartwrite-control-group" });
     langContainer.createEl("label", { text: "Response Language" });
-    const langSelect = langContainer.createEl("select");
-    langSelect.style.width = "100%";
-    langSelect.style.marginBottom = "15px";
+    const langSelect = langContainer.createEl("select", { cls: "smartwrite-w100 smartwrite-mb-15" });
     const languages = [
       { value: "auto", label: "Auto (Match Input)" },
       { value: "pt-br", label: "Portuguese (BR)" },
@@ -3171,17 +3172,16 @@ var PersonaPanel = class extends BasePanel {
     });
     const actionButton = container.createEl("button", {
       text: "Analyze Text",
-      cls: "mod-cta",
-      attr: { style: "width: 100%; margin-bottom: 16px;" }
+      cls: "mod-cta smartwrite-w100 smartwrite-mb-16"
     });
     modeSelect.addEventListener("change", () => {
       if (modeSelect.value === "translate") {
-        selectorSection.style.display = "none";
+        selectorSection.addClass("is-hidden");
         actionButton.setText("Translate Text");
         actionButton.classList.remove("mod-cta");
         actionButton.classList.add("mod-warning");
       } else {
-        selectorSection.style.display = "block";
+        selectorSection.removeClass("is-hidden");
         actionButton.setText("Analyze Text");
         actionButton.classList.add("mod-cta");
         actionButton.classList.remove("mod-warning");
@@ -3202,46 +3202,45 @@ var PersonaPanel = class extends BasePanel {
   renderSetupGuide(container) {
     const title = container.createEl("h3", {
       text: "\u{1F680} Setup Ollama",
-      attr: { style: "margin-bottom: 16px; color: var(--text-accent);" }
+      cls: "smartwrite-mb-16-accent"
     });
-    const optionHeader = container.createDiv({ cls: "smartwrite-stat-label", attr: { style: "margin-bottom: 12px;" } });
+    const optionHeader = container.createDiv({ cls: "smartwrite-stat-label smartwrite-mb-12" });
     optionHeader.setText("Choose Installation Method:");
-    const option1 = container.createDiv({ cls: "smartwrite-stat-item", attr: { style: "margin-bottom: 16px; padding: 12px; background: var(--background-secondary); border-radius: 6px;" } });
+    const option1 = container.createDiv({ cls: "smartwrite-stat-item smartwrite-mb-16 smartwrite-p12-bg2-r6" });
     option1.createEl("strong", { text: "\u{1F4F1} Option 1: Ollama App (Menu Bar Icon)" });
     option1.createEl("br");
-    const step1a = option1.createDiv({ attr: { style: "margin-top: 8px; margin-left: 12px;" } });
-    step1a.createSpan({ text: "1. ", attr: { style: "font-weight: bold;" } });
+    const step1a = option1.createDiv({ cls: "smartwrite-mt-8-ml-12" });
+    step1a.createSpan({ text: "1. ", cls: "smartwrite-fw-bold" });
     const downloadLink = step1a.createEl("a", {
       text: "Download Ollama",
       href: "https://ollama.ai/download",
-      attr: { style: "color: var(--interactive-accent); text-decoration: underline;" }
+      cls: "smartwrite-link-accent"
     });
     downloadLink.setAttr("target", "_blank");
-    const step2a = option1.createDiv({ attr: { style: "margin-left: 12px;" } });
-    step2a.createSpan({ text: "2. ", attr: { style: "font-weight: bold;" } });
+    const step2a = option1.createDiv({ cls: "smartwrite-ml-12" });
+    step2a.createSpan({ text: "2. ", cls: "smartwrite-fw-bold" });
     step2a.appendText("Drag to Applications folder");
-    const step3a = option1.createDiv({ attr: { style: "margin-left: 12px;" } });
-    step3a.createSpan({ text: "3. ", attr: { style: "font-weight: bold;" } });
+    const step3a = option1.createDiv({ cls: "smartwrite-ml-12" });
+    step3a.createSpan({ text: "3. ", cls: "smartwrite-fw-bold" });
     step3a.appendText("Launch Ollama.app");
-    const option2 = container.createDiv({ cls: "smartwrite-stat-item", attr: { style: "margin-bottom: 16px; padding: 12px; background: var(--background-secondary); border-radius: 6px; border: 2px solid var(--interactive-accent);" } });
+    const option2 = container.createDiv({ cls: "smartwrite-stat-item smartwrite-mb-16 smartwrite-p12-bg2-r6-accent-border" });
     option2.createEl("strong", { text: "\u{1F47B} Option 2: Background Service (Recommended)" });
     option2.createEl("br");
-    option2.createSpan({ text: "Completely invisible, no menu bar icon", attr: { style: "font-size: 11px; color: var(--text-muted);" } });
-    const brewNote = option2.createDiv({ attr: { style: "margin-top: 8px; font-size: 12px; font-style: italic;" } });
+    option2.createSpan({ text: "Completely invisible, no menu bar icon", cls: "smartwrite-mb-12-italic-f11" });
+    const brewNote = option2.createDiv({ cls: "smartwrite-mt-8-f12-italic" });
     brewNote.setText("Requirements: Homebrew installed");
     const brewLink = option2.createEl("a", {
       text: "Install Homebrew",
       href: "https://brew.sh",
-      attr: { style: "color: var(--interactive-accent); text-decoration: underline; font-size: 11px; margin-left: 4px;" }
+      cls: "smartwrite-link-accent smartwrite-f11-ml-4"
     });
     brewLink.setAttr("target", "_blank");
     const codeBlock = option2.createEl("pre", {
-      attr: { style: "margin-top: 8px; padding: 8px; background: var(--background-primary); border-radius: 4px; font-size: 11px; overflow-x: auto;" }
+      cls: "smartwrite-mt-8-p8-bg1-r4-f11"
     });
     codeBlock.createEl("code", { text: "brew install ollama\nbrew services start ollama" });
     const infoBox = container.createDiv({
-      cls: "smartwrite-suggestion-description",
-      attr: { style: "margin-top: 16px; padding: 12px; background: var(--background-secondary); border-radius: 6px; border-left: 3px solid var(--text-accent);" }
+      cls: "smartwrite-suggestion-description smartwrite-mt-16-p12-bg2-r6-accent-left"
     });
     infoBox.createEl("strong", { text: "\u{1F4A1} 100% Local & Free" });
     infoBox.createEl("br");
@@ -3250,8 +3249,7 @@ var PersonaPanel = class extends BasePanel {
     infoBox.appendText("Once running, this plugin auto-downloads the AI model.");
     const retryButton = container.createEl("button", {
       text: "Check Connection",
-      cls: "mod-cta",
-      attr: { style: "margin-top: 16px; width: 100%;" }
+      cls: "mod-cta smartwrite-mt-16 smartwrite-w100"
     });
     retryButton.addEventListener("click", async () => {
       retryButton.setText("Checking...");
@@ -3271,20 +3269,18 @@ var PersonaPanel = class extends BasePanel {
   updateInstallProgress(progress) {
     this.contentEl.empty();
     const container = this.contentEl.createDiv({ cls: "smartwrite-persona-container" });
-    const title = container.createEl("h3", { text: "Installing Model", attr: { style: "margin-bottom: 12px;" } });
+    const title = container.createEl("h3", { text: "Installing Model", cls: "smartwrite-mb-12" });
     const statusText = container.createDiv({
-      cls: "smartwrite-stat-label",
-      text: progress.status || "Downloading...",
-      attr: { style: "margin-bottom: 8px;" }
+      cls: "smartwrite-stat-label smartwrite-mb-12",
+      text: progress.status || "Downloading..."
     });
     if (progress.percent !== void 0) {
       const progressBar = container.createDiv({ cls: "smartwrite-progress-bar" });
       const progressFill = progressBar.createDiv({ cls: "smartwrite-progress-fill" });
       progressFill.style.width = `${progress.percent}%`;
       const percentText = container.createDiv({
-        cls: "smartwrite-stat-mono",
-        text: `${progress.percent}%`,
-        attr: { style: "margin-top: 4px; text-align: center;" }
+        cls: "smartwrite-stat-mono smartwrite-mt-4-text-center",
+        text: `${progress.percent}%`
       });
     }
   }
@@ -3305,19 +3301,17 @@ var PersonaPanel = class extends BasePanel {
         if (resultsContainer) {
           resultsContainer.empty();
           const errorDiv = resultsContainer.createDiv({
-            cls: "smartwrite-suggestion-description",
-            attr: { style: "color: var(--text-error); padding: 12px; background: var(--background-secondary); border-radius: 6px;" }
+            cls: "smartwrite-suggestion-description smartwrite-error-box"
           });
           errorDiv.setText(`Error: ${result.error}`);
         }
-        new import_obsidian3.Notice("Analysis failed.");
+        new import_obsidian4.Notice("Analysis failed.");
       } else {
         const resultsContainer = container.querySelector("#persona-results");
         if (resultsContainer) {
           resultsContainer.empty();
           const successDiv = resultsContainer.createDiv({
-            cls: "smartwrite-suggestion-description",
-            attr: { style: "color: var(--text-success); padding: 12px; background: var(--background-secondary); border-radius: 6px;" }
+            cls: "smartwrite-suggestion-description smartwrite-success-box"
           });
           successDiv.setText("\u2705 Analysis Document Created!");
         }
@@ -3335,11 +3329,11 @@ ${result.analysis}`;
         const filename = `Analysis - ${result.personaName} - ${timeString}.md`;
         const newFile = await this.plugin.app.vault.create(filename, fileContent);
         await this.plugin.app.workspace.getLeaf("tab").openFile(newFile);
-        new import_obsidian3.Notice(`Analysis saved to ${filename}`);
+        new import_obsidian4.Notice(`Analysis saved to ${filename}`);
       }
     } catch (error) {
       console.error("Analysis failed:", error);
-      new import_obsidian3.Notice("An error occurred during analysis.");
+      new import_obsidian4.Notice("An error occurred during analysis.");
     } finally {
       button.setText("Analyze Text");
       button.removeClass("smartwrite-btn-processing");
@@ -3348,7 +3342,7 @@ ${result.analysis}`;
   }
   async performTranslation(container, button, targetValue, targetLang) {
     if (targetLang === "auto") {
-      new import_obsidian3.Notice("Please select a specific Target Language for translation.");
+      new import_obsidian4.Notice("Please select a specific Target Language for translation.");
       return;
     }
     const { text, title } = await this.getTargetContent(targetValue);
@@ -3366,7 +3360,7 @@ ${result.analysis}`;
         }
       );
       if (result.error) {
-        new import_obsidian3.Notice(`Translation failed: ${result.error}`);
+        new import_obsidian4.Notice(`Translation failed: ${result.error}`);
       } else {
         const timestamp = (/* @__PURE__ */ new Date()).toLocaleString();
         const fileContent = `# Translation: ${title}
@@ -3380,10 +3374,10 @@ ${result.analysis}`;
         const filename = `Translation - ${title} - ${targetLang} - ${timeString}.md`;
         const newFile = await this.plugin.app.vault.create(filename, fileContent);
         await this.plugin.app.workspace.getLeaf("tab").openFile(newFile);
-        new import_obsidian3.Notice(`Translation saved: ${filename}`);
+        new import_obsidian4.Notice(`Translation saved: ${filename}`);
       }
     } catch (e) {
-      new import_obsidian3.Notice("Translation error.");
+      new import_obsidian4.Notice("Translation error.");
       console.error(e);
     } finally {
       button.setText("Translate Text");
@@ -3395,13 +3389,13 @@ ${result.analysis}`;
     let text = "";
     let title = "Untitled";
     if (targetValue === "current") {
-      let activeView = this.plugin.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
+      let activeView = this.plugin.app.workspace.getActiveViewOfType(import_obsidian4.MarkdownView);
       if (!activeView) {
         const leaf = this.plugin.app.workspace.getMostRecentLeaf();
-        if (leaf && leaf.view instanceof import_obsidian3.MarkdownView) activeView = leaf.view;
+        if (leaf && leaf.view instanceof import_obsidian4.MarkdownView) activeView = leaf.view;
       }
       if (!activeView || !activeView.editor) {
-        new import_obsidian3.Notice("Please open a markdown file.");
+        new import_obsidian4.Notice("Please open a markdown file.");
         return { text: null, title: "" };
       }
       text = activeView.editor.getSelection() || activeView.editor.getValue();
@@ -3411,7 +3405,7 @@ ${result.analysis}`;
       const projects = this.plugin.longformService.getProjects();
       const project = projects.find((p) => p.path === projectPath);
       if (project) {
-        new import_obsidian3.Notice(`\u{1F4DA} Compiling project: ${project.name}...`);
+        new import_obsidian4.Notice(`\u{1F4DA} Compiling project: ${project.name}...`);
         try {
           text = await this.plugin.longformService.getProjectContent(project);
           title = `Project - ${project.name}`;
@@ -3421,7 +3415,7 @@ ${result.analysis}`;
       }
     }
     if (!text || text.trim().length === 0) {
-      new import_obsidian3.Notice("No text found.");
+      new import_obsidian4.Notice("No text found.");
       return { text: null, title: "" };
     }
     return { text, title };
@@ -3429,7 +3423,7 @@ ${result.analysis}`;
 };
 
 // src/SidebarView.ts
-var SidebarView = class extends import_obsidian4.ItemView {
+var SidebarView = class extends import_obsidian5.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.isSettingsOpen = false;
@@ -3500,8 +3494,7 @@ var SidebarView = class extends import_obsidian4.ItemView {
     settingsBtn.addEventListener("click", () => this.toggleSettingsPanel());
   }
   createSettingsPanel(container) {
-    this.settingsPanel = container.createDiv({ cls: "smartwrite-settings-panel" });
-    this.settingsPanel.style.display = "none";
+    this.settingsPanel = container.createDiv({ cls: "smartwrite-settings-panel is-hidden" });
     this.createSettingToggle(this.settingsPanel, "Session Stats", "showSessionStats");
     this.createSettingToggle(this.settingsPanel, "Text Metrics", "showTextMetrics");
     this.createSettingToggle(this.settingsPanel, "Readability", "showReadability");
@@ -3523,7 +3516,7 @@ var SidebarView = class extends import_obsidian4.ItemView {
   toggleSettingsPanel() {
     this.isSettingsOpen = !this.isSettingsOpen;
     if (this.settingsPanel) {
-      this.settingsPanel.style.display = this.isSettingsOpen ? "block" : "none";
+      this.settingsPanel.toggleClass("is-hidden", !this.isSettingsOpen);
     }
   }
   refreshPanels() {
@@ -4086,14 +4079,14 @@ var SuggestionEngine = class {
       ]);
     }
   }
-  analyze(text, metrics) {
+  async analyze(text, metrics) {
     const suggestions = [];
     suggestions.push(...this.detectRepetitions(metrics));
     suggestions.push(...this.detectPassiveVoice(text));
     suggestions.push(...this.detectCliches(text));
     suggestions.push(...this.detectLongSentences(text, metrics.sentences));
     suggestions.push(...this.detectComplexWords(text, metrics.words));
-    suggestions.push(...this.useWriteGood(text));
+    suggestions.push(...await this.useWriteGood(text));
     const summary = this.createSummary(suggestions);
     return {
       suggestions,
@@ -4197,10 +4190,10 @@ var SuggestionEngine = class {
     }
     return results;
   }
-  useWriteGood(text) {
+  async useWriteGood(text) {
     const results = [];
     try {
-      const writeGood = require_write_good();
+      const writeGood = (await Promise.resolve().then(() => __toESM(require_write_good()))).default;
       const suggestions_raw = writeGood(text, {
         passive: false,
         // Handled separately
@@ -4402,7 +4395,7 @@ var Highlighter = class {
 };
 
 // src/services/OllamaService.ts
-var import_obsidian5 = require("obsidian");
+var import_obsidian6 = require("obsidian");
 var OllamaService = class {
   // 30 seconds
   constructor(plugin) {
@@ -4458,7 +4451,7 @@ var OllamaService = class {
    */
   async checkConnection() {
     try {
-      const response = await (0, import_obsidian5.requestUrl)({
+      const response = await (0, import_obsidian6.requestUrl)({
         url: `${this.endpoint}/api/tags`,
         method: "GET"
       });
@@ -4477,7 +4470,7 @@ var OllamaService = class {
    */
   async listModels() {
     try {
-      const response = await (0, import_obsidian5.requestUrl)({
+      const response = await (0, import_obsidian6.requestUrl)({
         url: `${this.endpoint}/api/tags`,
         method: "GET"
       });
@@ -4501,45 +4494,15 @@ var OllamaService = class {
    * Pulls (downloads) a model from Ollama with progress tracking.
    */
   async pullModel(modelName, onProgress) {
-    var _a;
     try {
-      const response = await fetch(`${this.endpoint}/api/pull`, {
+      const response = await (0, import_obsidian6.requestUrl)({
+        url: `${this.endpoint}/api/pull`,
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: modelName, stream: true })
+        body: JSON.stringify({ name: modelName, stream: false })
       });
-      if (!response.ok) {
-        throw new Error(`Failed to pull model: ${response.statusText}`);
-      }
-      const reader = (_a = response.body) == null ? void 0 : _a.getReader();
-      const decoder = new TextDecoder();
-      if (!reader) {
-        throw new Error("Response body is not readable");
-      }
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n").filter((line) => line.trim());
-        for (const line of lines) {
-          try {
-            const data = JSON.parse(line);
-            if (onProgress) {
-              const percent = data.total && data.completed ? Math.round(data.completed / data.total * 100) : void 0;
-              onProgress({
-                status: data.status || "downloading",
-                percent,
-                total: data.total,
-                completed: data.completed
-              });
-            }
-            if (data.status === "success") {
-              return true;
-            }
-          } catch (e) {
-            console.debug("Skipping invalid JSON:", line);
-          }
-        }
+      if (response.status !== 200) {
+        throw new Error(`Failed to pull model: ${response.status}`);
       }
       return true;
     } catch (error) {
@@ -4552,7 +4515,7 @@ var OllamaService = class {
    */
   async deleteModel(modelName) {
     try {
-      const response = await (0, import_obsidian5.requestUrl)({
+      const response = await (0, import_obsidian6.requestUrl)({
         url: `${this.endpoint}/api/delete`,
         method: "DELETE",
         body: JSON.stringify({ name: modelName }),
@@ -4573,7 +4536,7 @@ var OllamaService = class {
       throw new Error("Ollama is disabled in settings.");
     }
     try {
-      const response = await (0, import_obsidian5.requestUrl)({
+      const response = await (0, import_obsidian6.requestUrl)({
         url: `${this.endpoint}/api/generate`,
         method: "POST",
         body: JSON.stringify({
@@ -4838,7 +4801,7 @@ ${a}`).join("\n\n---\n\n") : analyses[0];
 };
 
 // src/services/LongformService.ts
-var import_obsidian6 = require("obsidian");
+var import_obsidian7 = require("obsidian");
 var LongformService = class {
   constructor(app) {
     this.app = app;
@@ -4895,12 +4858,12 @@ var LongformService = class {
     for (const sceneName of project.scenes) {
       let file = this.app.vault.getAbstractFileByPath(sceneName);
       if (!file && !sceneName.endsWith(".md")) {
-        file = this.app.vault.getAbstractFileByPath((0, import_obsidian6.normalizePath)(`${projectDir}/${sceneName}.md`));
+        file = this.app.vault.getAbstractFileByPath((0, import_obsidian7.normalizePath)(`${projectDir}/${sceneName}.md`));
       }
       const allFiles = this.app.vault.getMarkdownFiles();
       const found = allFiles.find((f) => f.basename === sceneName || f.name === sceneName);
       if (found) file = found;
-      if (file instanceof import_obsidian6.TFile) {
+      if (file instanceof import_obsidian7.TFile) {
         const content = await this.app.vault.read(file);
         fullText += `
 
@@ -5007,7 +4970,7 @@ ${translation}`;
 };
 
 // src/main.ts
-var SmartWriteCompanionPlugin = class extends import_obsidian7.Plugin {
+var SmartWriteCompanionPlugin = class extends import_obsidian8.Plugin {
   async onload() {
     await this.loadSettings();
     this.textAnalyzer = new TextAnalyzer();
@@ -5018,27 +4981,32 @@ var SmartWriteCompanionPlugin = class extends import_obsidian7.Plugin {
     this.personaManager = new PersonaManager(this);
     this.longformService = new LongformService(this.app);
     this.translationService = new TranslationService(this);
-    this.ollamaService.initializeService().then(async (result) => {
-      if (result.success) {
-        console.debug("SmartWrite: Ollama initialized -", result.message);
-        if (result.needsInstall) {
-          console.debug(`SmartWrite: Installing default model ${this.settings.ollamaModel}...`);
-          const success = await this.ollamaService.pullModel(
-            this.settings.ollamaModel,
-            (progress) => {
-              this.updateModelInstallProgress(progress);
+    void (async () => {
+      try {
+        const result = await this.ollamaService.initializeService();
+        if (result.success) {
+          console.debug("SmartWrite: Ollama initialized -", result.message);
+          if (result.needsInstall) {
+            console.debug(`SmartWrite: Installing default model ${this.settings.ollamaModel}...`);
+            const success = await this.ollamaService.pullModel(
+              this.settings.ollamaModel,
+              (progress) => {
+                this.updateModelInstallProgress(progress);
+              }
+            );
+            if (success) {
+              console.debug("SmartWrite: Model installed successfully");
+            } else {
+              console.error("SmartWrite: Model installation failed");
             }
-          );
-          if (success) {
-            console.debug("SmartWrite: Model installed successfully");
-          } else {
-            console.error("SmartWrite: Model installation failed");
           }
+        } else {
+          console.warn("SmartWrite: Ollama initialization failed -", result.message);
         }
-      } else {
-        console.warn("SmartWrite: Ollama initialization failed -", result.message);
+      } catch (error) {
+        console.error("SmartWrite: Ollama service error", error);
       }
-    });
+    })();
     this.sessionTracker = new SessionTracker(this);
     this.registerView(
       "smartwrite-sidebar",
@@ -5057,13 +5025,13 @@ var SmartWriteCompanionPlugin = class extends import_obsidian7.Plugin {
       }
     });
     this.registerEvent(
-      this.app.workspace.on("editor-change", (0, import_obsidian7.debounce)((editor, view) => {
+      this.app.workspace.on("editor-change", (0, import_obsidian8.debounce)((editor, view) => {
         this.onEditorChange(editor, view);
       }, 300))
     );
     this.registerEvent(
       this.app.workspace.on("active-leaf-change", (leaf) => {
-        if (leaf && leaf.view instanceof import_obsidian7.MarkdownView) {
+        if (leaf && leaf.view instanceof import_obsidian8.MarkdownView) {
           this.sessionTracker.resetFileBaseline();
           this.analyzeAndUpdate(leaf.view.editor.getValue());
         }
@@ -5071,7 +5039,7 @@ var SmartWriteCompanionPlugin = class extends import_obsidian7.Plugin {
     );
     this.registerEvent(
       this.app.workspace.on("file-open", (file) => {
-        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian7.MarkdownView);
+        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
         if (activeView) {
           this.analyzeAndUpdate(activeView.editor.getValue());
         }
@@ -5104,7 +5072,7 @@ var SmartWriteCompanionPlugin = class extends import_obsidian7.Plugin {
     }
     if (leaf) {
       workspace.revealLeaf(leaf);
-      const activeView = workspace.getActiveViewOfType(import_obsidian7.MarkdownView);
+      const activeView = workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
       if (activeView) {
         this.analyzeAndUpdate(activeView.editor.getValue());
       }
@@ -5114,19 +5082,22 @@ var SmartWriteCompanionPlugin = class extends import_obsidian7.Plugin {
     const text = editor.getValue();
     this.analyzeAndUpdate(text);
   }
-  analyzeAndUpdate(text) {
+  async analyzeAndUpdate(text) {
     try {
       const ptWords = ["que", "para", "com", "uma", "este"];
       const lang = ptWords.some((w) => text.toLowerCase().includes(w)) ? "pt" : "en";
       this.suggestionEngine = new SuggestionEngine({ language: lang });
       const metrics = this.textAnalyzer.analyze(text, lang);
       const stats = this.statsEngine.calculateTextStats(metrics, this.settings.readingSpeed);
-      const suggestions = this.suggestionEngine.analyze(text, metrics);
+      const suggestions = await this.suggestionEngine.analyze(text, metrics);
       const readability = this.readabilityEngine.calculateScores(metrics, lang);
       this.sessionTracker.updateWords(stats.wordCount);
-      const activeView = this.app.workspace.getActiveViewOfType(import_obsidian7.MarkdownView);
-      if (activeView && activeView.editor.cm) {
-        Highlighter.updateHighlights(activeView.editor.cm, suggestions.suggestions);
+      const activeView = this.app.workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
+      if (activeView) {
+        const cm = activeView.editor.cm;
+        if (cm) {
+          Highlighter.updateHighlights(cm, suggestions.suggestions);
+        }
       }
       this.updateSidebar(stats, suggestions, readability);
     } catch (error) {

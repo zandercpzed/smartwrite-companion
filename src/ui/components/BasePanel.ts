@@ -35,8 +35,7 @@ export abstract class BasePanel extends Component {
         titleEl.setText(title);
 
         // Badge on right
-        this.badgeEl = this.headerEl.createDiv({ cls: 'smartwrite-count-badge' });
-        this.badgeEl.style.display = 'none'; // Hidden by default
+        this.badgeEl = this.headerEl.createDiv({ cls: 'smartwrite-count-badge is-hidden' });
 
         // Header click toggles too
         this.headerEl.addEventListener('click', () => this.toggle());
@@ -50,16 +49,16 @@ export abstract class BasePanel extends Component {
     public updateBadge(text: string | number): void {
         if (!this.badgeEl) return;
         if (text === undefined || text === null || text === '') {
-            this.badgeEl.style.display = 'none';
+            this.badgeEl.addClass('is-hidden');
         } else {
             this.badgeEl.setText(String(text));
-            this.badgeEl.style.display = 'block';
+            this.badgeEl.removeClass('is-hidden');
         }
     }
 
     protected abstract renderContent(): void;
 
-    public updateContent(data?: any): void {
+    public updateContent(data?: unknown): void {
         // Override in subclasses
     }
 
@@ -68,10 +67,10 @@ export abstract class BasePanel extends Component {
         const toggleEl = this.headerEl.querySelector('.smartwrite-panel-toggle');
 
         if (this.isCollapsed) {
-            this.contentEl.style.display = 'none';
+            this.contentEl.addClass('is-hidden');
             if (toggleEl) toggleEl.setText('▶');
         } else {
-            this.contentEl.style.display = 'block';
+            this.contentEl.removeClass('is-hidden');
             if (toggleEl) toggleEl.setText('▼');
         }
     }
@@ -81,10 +80,10 @@ export abstract class BasePanel extends Component {
     }
 
     public show(): void {
-        if (this.panelEl) this.panelEl.style.display = 'block';
+        if (this.panelEl) this.panelEl.removeClass('is-hidden');
     }
 
     public hide(): void {
-        if (this.panelEl) this.panelEl.style.display = 'none';
+        if (this.panelEl) this.panelEl.addClass('is-hidden');
     }
 }

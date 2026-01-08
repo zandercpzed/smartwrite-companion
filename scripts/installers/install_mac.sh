@@ -11,9 +11,9 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-echo -e "${BLUE}================================================${NC}"
+echo -e "${BLUE}==============================================${NC}"
 echo -e "${BLUE}   SmartWrite Companion Installer ${GREEN}v0.8.1${NC}"
-echo -e "${BLUE}================================================${NC}"
+echo -e "${BLUE}==============================================${NC}"
 
 # 1. Detect Vaults
 echo -e "\n${YELLOW}🔍 Scanning for Obsidian Vaults...${NC}"

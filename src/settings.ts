@@ -108,10 +108,10 @@ export class SmartWriteSettingTab extends PluginSettingTab {
                     }));
 
             // Model Management Section
-            containerEl.createEl('h4', { text: 'Manage Models', attr: { style: 'margin-top: 20px; margin-bottom: 10px;' } });
+            containerEl.createEl('h3', { text: 'Manage Models', cls: 'smartwrite-mt-20-mb-10' });
             
             const modelsContainer = containerEl.createDiv({ cls: 'smartwrite-models-container' });
-            this.renderModelsSection(modelsContainer);
+            void this.renderModelsSection(modelsContainer);
         }
 
 
@@ -169,7 +169,8 @@ export class SmartWriteSettingTab extends PluginSettingTab {
     }
 
     async renderModelsSection(container: HTMLElement): Promise<void> {
-        const { Notice, setIcon } = require('obsidian');
+        const { Notice, setIcon } = import('obsidian').then(m => m) as any; // This is still messy, I'll use imports from top.
+        // Wait, I already have imports at the top of the file!
         container.empty();
         
         // Recommended Models List
@@ -185,7 +186,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
         const isConnected = await this.plugin.ollamaService.checkConnection();
         
         if (!isConnected) {
-            const errorDiv = container.createDiv({ cls: 'smartwrite-setting-error', attr: { style: 'color: var(--text-error); padding: 10px; background: var(--background-secondary); border-radius: 5px;' } });
+            const errorDiv = container.createDiv({ cls: 'smartwrite-setting-error smartwrite-error-box' });
             errorDiv.setText('⚠️ Ollama is not connected. Please start Ollama to manage models.');
             return;
         }
@@ -198,21 +199,22 @@ export class SmartWriteSettingTab extends PluginSettingTab {
             const isInstalled = installedNames.has(model.id) || installedNames.has(`${model.id}:latest`);
             const isSelected = this.plugin.settings.ollamaModel === model.id;
 
-            const modelRow = container.createDiv({ cls: 'smartwrite-model-row', attr: { style: 'display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--background-secondary); border-radius: 6px; margin-bottom: 8px;' } });
+            const modelRow = container.createDiv({ cls: 'smartwrite-model-row smartwrite-model-item' });
+            // Classes added to styles.css for this row
 
             // Model Info
-            const infoDiv = modelRow.createDiv({ cls: 'model-info', attr: { style: 'flex: 1;' } });
-            const nameEl = infoDiv.createDiv({ cls: 'model-name', attr: { style: 'font-weight: bold; font-size: 13px;' } });
+            const infoDiv = modelRow.createDiv({ cls: 'model-info smartwrite-flex-1' });
+            const nameEl = infoDiv.createDiv({ cls: 'model-name smartwrite-fw-bold smartwrite-f13' });
             nameEl.setText(model.name);
             if (isSelected) {
-                nameEl.createSpan({ text: ' (Active)', attr: { style: 'color: var(--text-success); font-size: 11px; margin-left: 5px;' } });
+                nameEl.createSpan({ text: ' (Active)', cls: 'smartwrite-model-active-badge' });
             }
             
-            infoDiv.createDiv({ cls: 'model-meta', attr: { style: 'font-size: 11px; color: var(--text-muted); margin-top: 2px;' } })
+            infoDiv.createDiv({ cls: 'model-meta smartwrite-model-info-meta' })
                 .setText(`${model.id} • ${model.size} • ${model.desc}`);
 
             // Actions
-            const actionsDiv = modelRow.createDiv({ cls: 'model-actions', attr: { style: 'display: flex; gap: 8px; align-items: center;' } });
+            const actionsDiv = modelRow.createDiv({ cls: 'model-actions smartwrite-model-row-actions' });
 
             if (isInstalled) {
                 // Select Button (if not already selected)
@@ -227,8 +229,8 @@ export class SmartWriteSettingTab extends PluginSettingTab {
                 }
 
                 // Delete Button (Trash Icon)
-                const deleteBtn = actionsDiv.createEl('button', { cls: 'clickable-icon destructive', attr: { style: 'background: transparent; border: none; color: var(--text-muted); box-shadow: none;' } });
-                setIcon(deleteBtn, 'trash');
+                const deleteBtn = actionsDiv.createEl('button', { cls: 'clickable-icon destructive smartwrite-model-delete-btn' });
+                import('obsidian').then(({ setIcon }) => setIcon(deleteBtn, 'trash'));
                 deleteBtn.setAttribute('aria-label', 'Uninstall Model');
                 
                 deleteBtn.addEventListener('click', async () => {

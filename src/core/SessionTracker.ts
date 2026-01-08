@@ -1,13 +1,14 @@
 import { Plugin } from 'obsidian';
 import { SessionStats, DailyProgress } from '../types';
+import SmartWriteCompanionPlugin from '../main';
 
 export class SessionTracker {
-    private plugin: Plugin;
+    private plugin: SmartWriteCompanionPlugin;
     private currentSession: SessionStats | null = null;
     private dailyProgress: Map<string, DailyProgress> = new Map();
     private lastKnownTotalInFile: number | null = null;
 
-    constructor(plugin: Plugin) {
+    constructor(plugin: SmartWriteCompanionPlugin) {
         this.plugin = plugin;
         this.loadDailyProgress();
     }
@@ -67,7 +68,7 @@ export class SessionTracker {
             ? Math.round(this.currentSession.wordsWritten / this.currentSession.timeSpent) 
             : 0;
 
-        const settings = (this.plugin as any).settings;
+        const settings = this.plugin.settings;
         if (settings && settings.dailyGoal) {
             const todayProgress = this.getTodayProgress();
             const totalDailyWords = todayProgress.wordsWritten + this.currentSession.wordsWritten;
@@ -96,7 +97,7 @@ export class SessionTracker {
         let progress = this.dailyProgress.get(today);
 
         if (!progress) {
-            const settings = (this.plugin as any).settings;
+            const settings = this.plugin.settings;
             progress = {
                 date: today,
                 wordsWritten: 0,
@@ -127,15 +128,15 @@ export class SessionTracker {
     }
 
     private async loadDailyProgress(): Promise<void> {
-        const data = await this.plugin.loadData();
-        if (data && (data as any).dailyProgress) {
-            const dailyProgressData = (data as any).dailyProgress;
+        const data = await this.plugin.loadData() as { dailyProgress?: Record<string, DailyProgress> } | null;
+        if (data && data.dailyProgress) {
+            const dailyProgressData = data.dailyProgress;
             this.dailyProgress = new Map(
-                Object.entries(dailyProgressData).map(([date, progress]: [string, any]) => [
+                Object.entries(dailyProgressData).map(([date, progress]) => [
                     date,
                     {
                         ...progress,
-                        sessions: progress.sessions ? progress.sessions.map((session: any) => ({
+                        sessions: progress.sessions ? progress.sessions.map((session: SessionStats) => ({
                             ...session,
                             startTime: new Date(session.startTime),
                             endTime: session.endTime ? new Date(session.endTime) : undefined,
