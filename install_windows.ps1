@@ -1,5 +1,5 @@
 # SmartWrite Companion Installer (Windows)
-# v0.7.0
+# v0.8.1
 
 Write-Host "==============================================" -ForegroundColor Cyan
 Write-Host "   SmartWrite Companion Installer (Windows)" -ForegroundColor Green
@@ -47,7 +47,9 @@ do {
         if ($index -ge 0 -and $index -lt $vaults.Count) {
             $targetVault = $vaults[$index]
         } elseif ($index -eq $vaults.Count) {
-            $targetVault = Read-Host "Enter full path to vault"
+            $inputPath = Read-Host "Enter full path to vault"
+            # Sanitize: remove leading/trailing quotes and spaces
+            $targetVault = $inputPath.Trim().Trim('"').Trim("'")
         }
     }
 } while ($null -eq $targetVault)

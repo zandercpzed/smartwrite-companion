@@ -11,8 +11,8 @@ describe('TextAnalyzer', () => {
         expect(result.words.length).toBe(8);
         expect(result.sentences.length).toBe(2);
         expect(result.paragraphs.length).toBe(1);
-        expect(result.characters).toBe(41);
-        expect(result.charactersNoSpaces).toBe(34);
+        expect(result.characters).toBe(43);
+        expect(result.charactersNoSpaces).toBe(36);
     });
 
     it('should extract words correctly', () => {

@@ -5020,9 +5020,9 @@ var SmartWriteCompanionPlugin = class extends import_obsidian7.Plugin {
     this.translationService = new TranslationService(this);
     this.ollamaService.initializeService().then(async (result) => {
       if (result.success) {
-        console.log("SmartWrite: Ollama initialized -", result.message);
+        console.debug("SmartWrite: Ollama initialized -", result.message);
         if (result.needsInstall) {
-          console.log(`SmartWrite: Installing default model ${this.settings.ollamaModel}...`);
+          console.debug(`SmartWrite: Installing default model ${this.settings.ollamaModel}...`);
           const success = await this.ollamaService.pullModel(
             this.settings.ollamaModel,
             (progress) => {
@@ -5030,7 +5030,7 @@ var SmartWriteCompanionPlugin = class extends import_obsidian7.Plugin {
             }
           );
           if (success) {
-            console.log("SmartWrite: Model installed successfully");
+            console.debug("SmartWrite: Model installed successfully");
           } else {
             console.error("SmartWrite: Model installation failed");
           }

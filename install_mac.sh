@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# SmartWrite Companion Installer (v0.6.0)
+# SmartWrite Companion Installer (v0.8.1)
 # - Detects Obsidian Vaults
 # - Installs Plugin
 # - Sets up Ollama & Models
@@ -12,7 +12,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 echo -e "${BLUE}==============================================${NC}"
-echo -e "${BLUE}   SmartWrite Companion Installer ${GREEN}v0.6.0${NC}"
+echo -e "${BLUE}   SmartWrite Companion Installer ${GREEN}v0.8.1${NC}"
 echo -e "${BLUE}==============================================${NC}"
 
 # 1. Detect Vaults
@@ -49,6 +49,9 @@ select opt in "${VAULT_PATHS[@]}" "Custom Path" "Quit"; do
     case $opt in
         "Custom Path")
             read -p "Enter full path to vault: " TARGET_VAULT
+            # Sanitize: remove leading/trailing quotes and resolve ~
+            TARGET_VAULT=$(echo "$TARGET_VAULT" | sed -e 's/^[[:space:]]*["'\'']//' -e 's/["'\''][[:space:]]*$//')
+            TARGET_VAULT="${TARGET_VAULT/#\~/$HOME}"
             break
             ;;
         "Quit")

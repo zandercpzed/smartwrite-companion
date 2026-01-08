@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # SmartWrite Companion Installer (Linux)
-# v0.7.0
+# v0.8.1
 
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -64,6 +64,9 @@ select opt in "${VAULT_PATHS[@]}" "Custom Path" "Quit"; do
     case $opt in
         "Custom Path")
             read -p "Enter full path to vault: " TARGET_VAULT
+            # Sanitize: remove leading/trailing quotes and resolve ~
+            TARGET_VAULT=$(echo "$TARGET_VAULT" | sed -e 's/^[[:space:]]*["'\'']//' -e 's/["'\''][[:space:]]*$//')
+            TARGET_VAULT="${TARGET_VAULT/#\~/$HOME}"
             break
             ;;
         "Quit")
