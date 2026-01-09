@@ -1,4 +1,3 @@
-import { Notice } from 'obsidian';
 import SmartWriteCompanionPlugin from '../main';
 
 export interface TranslationResult {

@@ -1,4 +1,4 @@
-import { Plugin, TFile, WorkspaceLeaf, debounce, MarkdownView } from 'obsidian';
+import { Plugin, WorkspaceLeaf, debounce, MarkdownView } from 'obsidian';
 import { SmartWriteSettings, DEFAULT_SETTINGS } from './settings';
 import { SmartWriteSettingTab } from './settings';
 import { SidebarView } from './SidebarView';
@@ -120,7 +120,7 @@ export default class SmartWriteCompanionPlugin extends Plugin {
         
         // Also register file-open to be safe
         this.registerEvent(
-            this.app.workspace.on('file-open', (file) => {
+            this.app.workspace.on('file-open', () => {
                 const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
                 if (activeView) {
                     this.analyzeAndUpdate(activeView.editor.getValue());
@@ -170,7 +170,7 @@ export default class SmartWriteCompanionPlugin extends Plugin {
         }
     }
 
-    private onEditorChange(editor: MarkdownView['editor'], view: MarkdownView): void {
+    private onEditorChange(editor: MarkdownView['editor'], _view: MarkdownView): void {
         const text = editor.getValue();
         this.analyzeAndUpdate(text);
     }

@@ -19,7 +19,6 @@ export class OllamaService {
     private plugin: SmartWriteCompanionPlugin;
     private isConnected: boolean = false;
     private lastHealthCheck: number = 0;
-    private healthCheckInterval: number = 30000; // 30 seconds
 
     constructor(plugin: SmartWriteCompanionPlugin) {
         this.plugin = plugin;
@@ -130,7 +129,7 @@ export class OllamaService {
      */
     async pullModel(
         modelName: string,
-        onProgress?: (progress: { status: string; percent?: number; total?: number; completed?: number }) => void
+        _onProgress?: (progress: { status: string; percent?: number; total?: number; completed?: number }) => void
     ): Promise<boolean> {
         try {
             const response = await requestUrl({

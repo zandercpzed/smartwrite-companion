@@ -58,7 +58,7 @@ export abstract class BasePanel extends Component {
 
     protected abstract renderContent(): void;
 
-    public updateContent(data?: unknown): void {
+    public updateContent(_data?: unknown): void {
         // Override in subclasses
     }
 

@@ -47,7 +47,7 @@ export class ReadabilityPanel extends BasePanel {
         }
         progressFill.addClass('smartwrite-progress-fill');
         progressFill.setCssProps({ '--progress-width': `${percent}%` });
-        progressFill.style.width = 'var(--progress-width)';
+        progressFill.setCssStyles({ width: 'var(--progress-width)' });
 
         // Interpretation
         const interpretation = this.contentEl.createDiv({ cls: 'smartwrite-suggestion-description smartwrite-italic-o8' });

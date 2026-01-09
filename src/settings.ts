@@ -169,7 +169,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
     }
 
     async renderModelsSection(container: HTMLElement): Promise<void> {
-        const { Notice, setIcon } = import('obsidian').then(m => m) as any; // This is still messy, I'll use imports from top.
+        const { Notice } = import('obsidian').then(m => m) as any; // This is still messy, I'll use imports from top.
         // Wait, I already have imports at the top of the file!
         container.empty();
         

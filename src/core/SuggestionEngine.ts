@@ -4,7 +4,6 @@ export class SuggestionEngine {
     private passiveVoicePatterns: RegExp[];
     private cliches: Set<string>;
     private longSentenceThreshold: number;
-    private repetitionThreshold: number;
 
     constructor(options: {
         longSentenceThreshold?: number;
@@ -12,7 +11,7 @@ export class SuggestionEngine {
         language?: string;
     } = {}) {
         this.longSentenceThreshold = options.longSentenceThreshold || 25;
-        this.repetitionThreshold = options.repetitionThreshold || 3;
+
 
         // Passive voice patterns
         if (options.language === 'pt') {
@@ -218,10 +217,7 @@ export class SuggestionEngine {
         return results;
     }
 
-    private mapWriteGoodType(reason: string): Suggestion['type'] {
-        // Not needed for aggregation
-        return 'grammar';
-    }
+
 
     private createSummary(suggestions: Suggestion[]) {
         const byType: Record<string, number> = {};

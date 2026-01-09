@@ -1,4 +1,3 @@
-import { Plugin } from 'obsidian';
 import { SessionStats, DailyProgress } from '../types';
 import SmartWriteCompanionPlugin from '../main';
 

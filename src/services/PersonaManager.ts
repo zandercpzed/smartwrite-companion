@@ -1,6 +1,5 @@
 import SmartWriteCompanionPlugin from '../main';
 import { Persona, PersonaAnalysisResult } from '../types';
-import { OllamaService } from './OllamaService';
 
 export class PersonaManager {
     private plugin: SmartWriteCompanionPlugin;

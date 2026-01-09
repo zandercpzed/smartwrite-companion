@@ -34,19 +34,7 @@ describe('TextAnalyzer', () => {
     });
 
     it('should count syllables correctly', () => {
-        const words = ['syllable', 'example', 'extraordinary'];
-        const syllableCount = (analyzer as any).countSyllables(words);
-        // syllable -> syl-la-ble (3)
-        // example -> ex-am-ple (3)
-        // extraordinary -> ex-traor-di-nary (5) - this can be tricky, let's check hyphen's output
         // Based on common english hyphenation, let's assume a reasonable approximation.
-        // Let's rely on the library's behavior.
-        // After running this test, we can adjust the expected value if needed.
-        // A simple implementation of `hyphenateSync` might split "syllable" into 3 parts.
-        // "example" into 3, and "extraordinary" into 5.
-        // So, 3 + 3 + 5 = 11. Let's start with that.
-        // It's also possible `hyphenateSync` returns the word if it can't find hyphens, so the count would be 1.
-        // Let's make a more robust test.
         const syllablesForSyllable = (analyzer as any).countSyllables(['syllable']);
         expect(syllablesForSyllable).toBe(3);
 

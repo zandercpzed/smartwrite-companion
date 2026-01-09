@@ -4,7 +4,6 @@ import SmartWriteCompanionPlugin from "../../main";
 
 export class SessionStatsPanel extends BasePanel {
     private plugin: SmartWriteCompanionPlugin;
-    private textStats: TextStats | null = null;
 
     constructor(containerEl: HTMLElement, plugin: SmartWriteCompanionPlugin) {
         super(containerEl, 'Session Stats');
@@ -44,7 +43,7 @@ export class SessionStatsPanel extends BasePanel {
             const progressBar = goalContainer.createDiv({ cls: 'smartwrite-progress-bar' });
             const progressFill = progressBar.createDiv({ cls: 'smartwrite-progress-fill' });
             progressFill.setCssProps({ '--progress-width': `${percent}%` });
-            progressFill.style.width = 'var(--progress-width)';
+            progressFill.setCssStyles({ width: 'var(--progress-width)' });
 
             // Stats Grid (Time & Pace)
             const statsGrid = this.contentEl.createDiv({ cls: 'smartwrite-stats-grid' });
@@ -80,8 +79,7 @@ export class SessionStatsPanel extends BasePanel {
         return goal > 0 ? Math.min((current / goal) * 100, 100) : 0;
     }
 
-    public update(stats: TextStats | null): void {
-        this.textStats = stats;
+    public update(_stats: TextStats | null): void {
         this.renderContent();
     }
 }

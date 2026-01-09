@@ -5,7 +5,7 @@ import { hyphenateSync } from 'hyphen/en';
 export class TextAnalyzer {
     private wordPattern = /[\wÀ-ÿ'-]+/g;
 
-    public analyze(text: string, language: Language = 'en'): TextMetrics {
+    public analyze(text: string, _language: Language = 'en'): TextMetrics {
         const words = this.extractWords(text);
         const sentences = this.extractSentences(text); // sbd handles multiple languages somewhat, but explicit config could be better
         const paragraphs = this.extractParagraphs(text);

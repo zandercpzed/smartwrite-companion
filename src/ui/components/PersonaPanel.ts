@@ -158,7 +158,7 @@ export class PersonaPanel extends BasePanel {
         });
 
         // Results area (will be populated after analysis)
-        const resultsContainer = container.createDiv({ 
+        container.createDiv({ 
             cls: 'smartwrite-persona-results',
             attr: { id: 'persona-results' }
         });
@@ -166,7 +166,7 @@ export class PersonaPanel extends BasePanel {
 
     private renderSetupGuide(container: HTMLElement): void {
         // ... (existing implementation unchanged) ...
-        const title = container.createEl('h3', { 
+        container.createEl('h3', { 
             text: '🚀 Setup Ollama', 
             cls: 'smartwrite-mb-16-accent' 
         });
@@ -249,7 +249,7 @@ export class PersonaPanel extends BasePanel {
         });
     }
 
-    public update(data: any): void {
+    public update(_data: any): void {
         this.renderContent();
     }
 
@@ -258,9 +258,9 @@ export class PersonaPanel extends BasePanel {
         this.contentEl.empty();
         const container = this.contentEl.createDiv({ cls: 'smartwrite-persona-container' });
         
-        const title = container.createEl('h3', { text: 'Installing Model', cls: 'smartwrite-mb-12' });
+        container.createEl('h3', { text: 'Installing Model', cls: 'smartwrite-mb-12' });
         
-        const statusText = container.createDiv({ 
+        container.createDiv({ 
             cls: 'smartwrite-stat-label smartwrite-mb-12', 
             text: progress.status || 'Downloading...'
         });
@@ -268,9 +268,10 @@ export class PersonaPanel extends BasePanel {
         if (progress.percent !== undefined) {
             const progressBar = container.createDiv({ cls: 'smartwrite-progress-bar' });
             const progressFill = progressBar.createDiv({ cls: 'smartwrite-progress-fill' });
-            progressFill.style.width = `${progress.percent}%`;
+            progressFill.setCssProps({ '--progress-width': `${progress.percent}%` });
+            progressFill.style.width = 'var(--progress-width)';
             
-            const percentText = container.createDiv({ 
+            container.createDiv({ 
                 cls: 'smartwrite-stat-mono smartwrite-mt-4-text-center', 
                 text: `${progress.percent}%`
             });
@@ -346,7 +347,7 @@ export class PersonaPanel extends BasePanel {
     }
 
 
-    private async performTranslation(container: HTMLElement, button: HTMLButtonElement, targetValue: string, targetLang: string) {
+    private async performTranslation(_container: HTMLElement, button: HTMLButtonElement, targetValue: string, targetLang: string) {
         if (targetLang === 'auto') {
             new Notice('Please select a specific Target Language for translation.');
             return;

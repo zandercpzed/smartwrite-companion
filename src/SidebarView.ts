@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, Menu } from 'obsidian';
+import { ItemView, WorkspaceLeaf } from 'obsidian';
 import SmartWriteCompanionPlugin from './main';
 import { TextStats, SuggestionsResult, ReadabilityScores } from './types';
 import { SessionStatsPanel } from './ui/components/SessionStatsPanel';
@@ -144,14 +144,6 @@ export class SidebarView extends ItemView {
         if (this.personaPanel) settings.showPersona ? this.personaPanel.show() : this.personaPanel.hide();
     }
 
-    private toggleSidebar(): void {
-        const leaves = this.app.workspace.getLeavesOfType('smartwrite-sidebar');
-        if (leaves.length > 0) {
-            this.app.workspace.detachLeavesOfType('smartwrite-sidebar');
-        } else {
-            this.plugin.activateView();
-        }
-    }
 
     updateContent(stats: TextStats | null, suggestions: SuggestionsResult | null, readability: ReadabilityScores | null): void {
         if (this.sessionStatsPanel) {
