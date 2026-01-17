@@ -2608,7 +2608,7 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian.Setting(containerEl).setName("SmartWrite companion settings").setHeading();
+    new import_obsidian.Setting(containerEl).setName("General").setHeading();
     new import_obsidian.Setting(containerEl).setName("Daily word goal").setDesc("Set your daily writing goal in words").addText((text) => text.setPlaceholder("1000").setValue(this.plugin.settings.dailyGoal.toString()).onChange(async (value) => {
       const numValue = parseInt(value);
       if (!isNaN(numValue) && numValue > 0) {
@@ -3089,7 +3089,9 @@ var ReadabilityPanel = class extends BasePanel {
       { id: "gunningFog", name: "Gunning fog index" },
       { id: "colemanLiau", name: "Coleman-Liau index" },
       { id: "automatedReadability", name: "Automated readability" },
-      { id: "daleChall", name: "Dale-Chall score" }
+      { id: "daleChall", name: "Dale-Chall score" },
+      { id: "gulpease", name: "Gulpease index (PT/ES)" },
+      { id: "smog", name: "SMOG grade" }
     ];
     formulas.forEach((f) => {
       const opt = select.createEl("option", { value: f.id, text: f.name });
@@ -3114,7 +3116,7 @@ var PersonaPanel = class extends BasePanel {
     super(containerEl, "Persona analysis");
     this.plugin = plugin;
   }
-  async renderContent() {
+  renderContent() {
     if (!this.plugin) return;
     this.contentEl.empty();
     const container = this.contentEl.createDiv({ cls: "smartwrite-persona-container" });
@@ -3279,7 +3281,7 @@ var PersonaPanel = class extends BasePanel {
       retryButton.disabled = true;
       const connected = await this.plugin.ollamaService.checkConnection();
       if (connected) {
-        await this.renderContent();
+        this.renderContent();
       } else {
         retryButton.setText("Check Connection");
         retryButton.disabled = false;
@@ -3301,7 +3303,7 @@ var PersonaPanel = class extends BasePanel {
       const progressBar = container.createDiv({ cls: "smartwrite-progress-bar" });
       const progressFill = progressBar.createDiv({ cls: "smartwrite-progress-fill" });
       progressFill.setCssProps({ "--progress-width": `${progress.percent}%` });
-      progressFill.style.width = "var(--progress-width)";
+      progressFill.setCssStyles({ width: "var(--progress-width)" });
       container.createDiv({
         cls: "smartwrite-stat-mono smartwrite-mt-4-text-center",
         text: `${progress.percent}%`
@@ -3433,7 +3435,9 @@ ${result.analysis}`;
         try {
           text = await this.plugin.longformService.getProjectContent(project);
           title = `Project - ${project.name}`;
-        } catch (e) {
+        } catch (err) {
+          console.error("Failed to compile project:", err);
+          new import_obsidian4.Notice("Failed to compile project");
           return { text: null, title: "" };
         }
       }
@@ -3530,9 +3534,9 @@ var SidebarView = class extends import_obsidian5.ItemView {
     const labelEl = row.createEl("label", { cls: "smartwrite-module-toggle" });
     const input = labelEl.createEl("input", { type: "checkbox", cls: "smartwrite-module-checkbox" });
     input.checked = !!this.plugin.settings[settingKey];
-    input.addEventListener("change", async () => {
+    input.addEventListener("change", () => {
       this.plugin.settings[settingKey] = input.checked;
-      await this.plugin.saveSettings();
+      this.plugin.saveSettings().catch((err) => console.error("Failed to save settings:", err));
       this.refreshPanels();
     });
     labelEl.createSpan({ cls: "smartwrite-module-label" }).setText(label);
@@ -3546,19 +3550,24 @@ var SidebarView = class extends import_obsidian5.ItemView {
   refreshPanels() {
     const settings = this.plugin.settings;
     if (this.sessionStatsPanel) {
-      settings.showSessionStats ? this.sessionStatsPanel.show() : this.sessionStatsPanel.hide();
+      if (settings.showSessionStats) this.sessionStatsPanel.show();
+      else this.sessionStatsPanel.hide();
     }
     if (this.textMetricsPanel) {
-      settings.showTextMetrics ? this.textMetricsPanel.show() : this.textMetricsPanel.hide();
+      if (settings.showTextMetrics) this.textMetricsPanel.show();
+      else this.textMetricsPanel.hide();
     }
     if (this.suggestionsPanel) {
-      settings.showSuggestions ? this.suggestionsPanel.show() : this.suggestionsPanel.hide();
+      if (settings.showSuggestions) this.suggestionsPanel.show();
+      else this.suggestionsPanel.hide();
     }
     if (this.readabilityPanel) {
-      settings.showReadability ? this.readabilityPanel.show() : this.readabilityPanel.hide();
+      if (settings.showReadability) this.readabilityPanel.show();
+      else this.readabilityPanel.hide();
     }
     if (this.personaPanel) {
-      settings.showPersona ? this.personaPanel.show() : this.personaPanel.hide();
+      if (settings.showPersona) this.personaPanel.show();
+      else this.personaPanel.hide();
     }
   }
   updateContent(stats, suggestions, readability) {
@@ -4278,6 +4287,8 @@ var ReadabilityEngine = class {
     const colemanLiau = this.calculateColemanLiau(metrics.characters, wordCount, sentenceCount);
     const automatedReadability = this.calculateAutomatedReadability(metrics.characters, wordCount, sentenceCount);
     const daleChall = this.calculateDaleChall(avgWordsPerSentence, this.countDifficultWords(metrics.words));
+    const gulpease = this.calculateGulpease(wordCount, sentenceCount, metrics.characters);
+    const smog = this.calculateSMOG(sentenceCount, this.countPolysyllables(metrics.words));
     const overallLevel = this.determineOverallLevel(fleschReadingEase);
     const interpretation = this.getInterpretation(overallLevel);
     return {
@@ -4287,6 +4298,8 @@ var ReadabilityEngine = class {
       colemanLiau,
       automatedReadability,
       daleChall,
+      gulpease,
+      smog,
       overallLevel,
       interpretation
     };
@@ -4312,9 +4325,20 @@ var ReadabilityEngine = class {
     const avgWordsPerSentence = wordCount / sentenceCount;
     return 4.71 * avgCharsPerWord + 0.5 * avgWordsPerSentence - 21.43;
   }
+  calculateGulpease(wordCount, sentenceCount, letterCount) {
+    if (wordCount === 0) return 0;
+    return 89 + (300 * sentenceCount - 10 * letterCount) / wordCount;
+  }
+  calculateSMOG(sentenceCount, polysyllableCount) {
+    if (sentenceCount === 0) return 0;
+    return 1.043 * Math.sqrt(polysyllableCount * (30 / sentenceCount)) + 3.1291;
+  }
   calculateDaleChall(avgWordsPerSentence, difficultWordCount) {
     const difficultWordPercentage = difficultWordCount / 100 * 100;
     return 0.1579 * difficultWordPercentage + 0.0496 * avgWordsPerSentence;
+  }
+  countPolysyllables(words) {
+    return words.filter((word) => this.countSyllablesInWord(word) >= 3).length;
   }
   countComplexWords(words) {
     return words.filter((word) => this.countSyllablesInWord(word) >= 3).length;
@@ -4361,6 +4385,8 @@ var ReadabilityEngine = class {
       colemanLiau: 0,
       automatedReadability: 0,
       daleChall: 0,
+      gulpease: 0,
+      smog: 0,
       overallLevel: "standard",
       interpretation: "No text to analyze."
     };

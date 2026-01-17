@@ -119,9 +119,9 @@ export class SidebarView extends ItemView {
         const input = labelEl.createEl('input', { type: 'checkbox', cls: 'smartwrite-module-checkbox' });
         input.checked = !!this.plugin.settings[settingKey]; // Force boolean
         
-        input.addEventListener('change', async () => {
-            (this.plugin.settings as any)[settingKey] = input.checked;
-            await this.plugin.saveSettings();
+        input.addEventListener('change', () => {
+            (this.plugin.settings[settingKey] as boolean) = input.checked;
+            this.plugin.saveSettings().catch(err => console.error('Failed to save settings:', err));
             this.refreshPanels();
         });
 
@@ -137,11 +137,26 @@ export class SidebarView extends ItemView {
 
     private refreshPanels(): void {
         const settings = this.plugin.settings;
-        if (this.sessionStatsPanel) { settings.showSessionStats ? this.sessionStatsPanel.show() : this.sessionStatsPanel.hide(); }
-        if (this.textMetricsPanel) { settings.showTextMetrics ? this.textMetricsPanel.show() : this.textMetricsPanel.hide(); }
-        if (this.suggestionsPanel) { settings.showSuggestions ? this.suggestionsPanel.show() : this.suggestionsPanel.hide(); }
-        if (this.readabilityPanel) { settings.showReadability ? this.readabilityPanel.show() : this.readabilityPanel.hide(); }
-        if (this.personaPanel) { settings.showPersona ? this.personaPanel.show() : this.personaPanel.hide(); }
+        if (this.sessionStatsPanel) { 
+            if (settings.showSessionStats) this.sessionStatsPanel.show(); 
+            else this.sessionStatsPanel.hide(); 
+        }
+        if (this.textMetricsPanel) { 
+            if (settings.showTextMetrics) this.textMetricsPanel.show(); 
+            else this.textMetricsPanel.hide(); 
+        }
+        if (this.suggestionsPanel) { 
+            if (settings.showSuggestions) this.suggestionsPanel.show(); 
+            else this.suggestionsPanel.hide(); 
+        }
+        if (this.readabilityPanel) { 
+            if (settings.showReadability) this.readabilityPanel.show(); 
+            else this.readabilityPanel.hide(); 
+        }
+        if (this.personaPanel) { 
+            if (settings.showPersona) this.personaPanel.show(); 
+            else this.personaPanel.hide(); 
+        }
     }
 
 

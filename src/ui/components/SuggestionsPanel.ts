@@ -1,5 +1,5 @@
 import { BasePanel } from './BasePanel';
-import { Suggestion, SuggestionsResult } from '../../types';
+import { SuggestionsResult } from '../../types';
 import SmartWriteCompanionPlugin from "../../main";
 import { MarkdownView } from 'obsidian';
 

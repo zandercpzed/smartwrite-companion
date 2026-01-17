@@ -52,7 +52,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        new Setting(containerEl).setName('SmartWrite companion settings').setHeading();
+        new Setting(containerEl).setName('General').setHeading();
 
         new Setting(containerEl)
             .setName('Daily word goal')

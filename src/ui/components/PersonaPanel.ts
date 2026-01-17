@@ -11,7 +11,7 @@ export class PersonaPanel extends BasePanel {
         this.plugin = plugin;
     }
 
-    protected async renderContent(): Promise<void> {
+    protected renderContent(): void {
         if (!this.plugin) return;
         this.contentEl.empty();
 
@@ -241,7 +241,7 @@ export class PersonaPanel extends BasePanel {
             const connected = await this.plugin.ollamaService.checkConnection();
             
             if (connected) {
-                await this.renderContent();
+                this.renderContent();
             } else {
                 retryButton.setText('Check Connection');
                 retryButton.disabled = false;
@@ -269,7 +269,7 @@ export class PersonaPanel extends BasePanel {
             const progressBar = container.createDiv({ cls: 'smartwrite-progress-bar' });
             const progressFill = progressBar.createDiv({ cls: 'smartwrite-progress-fill' });
             progressFill.setCssProps({ '--progress-width': `${progress.percent}%` });
-            progressFill.style.width = 'var(--progress-width)';
+            progressFill.setCssStyles({ width: 'var(--progress-width)' });
             
             container.createDiv({ 
                 cls: 'smartwrite-stat-mono smartwrite-mt-4-text-center', 
@@ -430,7 +430,9 @@ export class PersonaPanel extends BasePanel {
                 try {
                     text = await this.plugin.longformService.getProjectContent(project);
                     title = `Project - ${project.name}`;
-                } catch (e) {
+                } catch (err) {
+                    console.error('Failed to compile project:', err);
+                    new Notice('Failed to compile project');
                     return { text: null, title: '' };
                 }
             }

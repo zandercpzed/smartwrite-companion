@@ -56,7 +56,7 @@ export class TextAnalyzer {
                     const hyphenated = hyphenateSync(word);
                     const segments = hyphenated.split(/\u00AD/);
                     totalSyllables += segments.length;
-                } catch (e) {
+                } catch {
                     // Fallback to basic English heuristic if hyphenator fails
                     totalSyllables += this.countEnglishSyllablesBasic(word);
                 }

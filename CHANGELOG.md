@@ -1,5 +1,26 @@
 # SmartWrite Companion Changelog
 
+## [0.8.2] - 2026-01-17
+
+### 📊 Enhanced Readability Analysis
+
+**The plugin now includes Portuguese-optimized readability formulas, as recommended in the blueprint.**
+
+### ✨ New Features
+
+- **Gulpease Index**: Readability metric optimized for Romance languages (Portuguese, Spanish, Italian). Character-based calculation that's more accurate for these languages than traditional syllable-based methods.
+- **SMOG Grade**: Superior readability metric for short texts (under 30 sentences). More accurate than Flesch-Kincaid for blog posts, article excerpts, and short stories.
+- **Formula Selector**: Users can now choose from 8 different readability formulas via dropdown in the Readability panel.
+
+### 🔧 Technical Changes
+
+- Added `gulpease` and `smog` fields to `ReadabilityScores` interface
+- Implemented Gulpease calculation in `ReadabilityEngine`
+- Implemented SMOG calculation with polysyllable counting
+- Updated `ReadabilityPanel` UI to include new formula options
+
+---
+
 ## [0.8.0] - 2026-01-02
 
 ### 🌍 Major Feature: Multilingual & Translation Support

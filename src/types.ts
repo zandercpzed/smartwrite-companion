@@ -65,6 +65,8 @@ export interface ReadabilityScores {
     colemanLiau: number;
     automatedReadability: number;
     daleChall: number;
+    gulpease: number;
+    smog: number;
     overallLevel: 'very-easy' | 'easy' | 'fairly-easy' | 'standard' | 'fairly-difficult' | 'difficult' | 'very-difficult';
     interpretation: string;
 }

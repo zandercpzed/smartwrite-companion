@@ -21,7 +21,7 @@ export class ReadabilityPanel extends BasePanel {
         }
 
         const preferred = this.plugin.settings.preferredReadabilityFormula || 'fleschReadingEase';
-        const score = (this.scores as any)[preferred] || 0;
+        const score = this.scores[preferred as keyof ReadabilityScores] as number || 0;
 
         // Large Score (Matches Session Stats big number)
         const largeStat = this.contentEl.createDiv({ cls: 'smartwrite-stat-large' });
@@ -63,7 +63,9 @@ export class ReadabilityPanel extends BasePanel {
             { id: 'gunningFog', name: 'Gunning fog index' },
             { id: 'colemanLiau', name: 'Coleman-Liau index' },
             { id: 'automatedReadability', name: 'Automated readability' },
-            { id: 'daleChall', name: 'Dale-Chall score' }
+            { id: 'daleChall', name: 'Dale-Chall score' },
+            { id: 'gulpease', name: 'Gulpease index (PT/ES)' },
+            { id: 'smog', name: 'SMOG grade' }
         ];
 
         formulas.forEach(f => {

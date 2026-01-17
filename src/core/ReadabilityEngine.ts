@@ -31,6 +31,12 @@ export class ReadabilityEngine {
         // Dale-Chall Readability Score (simplified)
         const daleChall = this.calculateDaleChall(avgWordsPerSentence, this.countDifficultWords(metrics.words));
 
+        // Gulpease Index (optimized for Romance languages)
+        const gulpease = this.calculateGulpease(wordCount, sentenceCount, metrics.characters);
+
+        // SMOG Index (accurate for short texts)
+        const smog = this.calculateSMOG(sentenceCount, this.countPolysyllables(metrics.words));
+
         const overallLevel = this.determineOverallLevel(fleschReadingEase);
         const interpretation = this.getInterpretation(overallLevel);
 
@@ -41,6 +47,8 @@ export class ReadabilityEngine {
             colemanLiau,
             automatedReadability,
             daleChall,
+            gulpease,
+            smog,
             overallLevel,
             interpretation,
         };
@@ -80,10 +88,29 @@ export class ReadabilityEngine {
         return (4.71 * avgCharsPerWord) + (0.5 * avgWordsPerSentence) - 21.43;
     }
 
+    private calculateGulpease(wordCount: number, sentenceCount: number, letterCount: number): number {
+        // Gulpease Index: 89 + ((300 × sentences) - (10 × letters)) ÷ words
+        // Optimized for Romance languages (Italian, Portuguese, Spanish)
+        if (wordCount === 0) return 0;
+        return 89 + ((300 * sentenceCount) - (10 * letterCount)) / wordCount;
+    }
+
+    private calculateSMOG(sentenceCount: number, polysyllableCount: number): number {
+        // SMOG Index: 1.0430 × √(polysyllables × (30 ÷ sentences)) + 3.1291
+        // More accurate for short texts (30 sentences or less)
+        if (sentenceCount === 0) return 0;
+        return 1.0430 * Math.sqrt((polysyllableCount * (30 / sentenceCount))) + 3.1291;
+    }
+
     private calculateDaleChall(avgWordsPerSentence: number, difficultWordCount: number): number {
         // Simplified Dale-Chall: 0.1579 × (difficult words/words × 100) + 0.0496 × (words/sentences)
         const difficultWordPercentage = (difficultWordCount / 100) * 100;
         return (0.1579 * difficultWordPercentage) + (0.0496 * avgWordsPerSentence);
+    }
+
+    private countPolysyllables(words: string[]): number {
+        // Words with 3+ syllables (used for SMOG)
+        return words.filter(word => this.countSyllablesInWord(word) >= 3).length;
     }
 
     private countComplexWords(words: string[]): number {
@@ -141,6 +168,8 @@ export class ReadabilityEngine {
             colemanLiau: 0,
             automatedReadability: 0,
             daleChall: 0,
+            gulpease: 0,
+            smog: 0,
             overallLevel: 'standard',
             interpretation: 'No text to analyze.',
         };
