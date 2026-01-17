@@ -3,6 +3,7 @@
   "version": "0.8.3",
   "description": "An intelligent writing assistant with real-time statistics, readability analysis, and AI-powered persona feedback.",
   "main": "main.js",
+  "type": "module",
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
