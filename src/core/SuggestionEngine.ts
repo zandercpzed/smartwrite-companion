@@ -7,7 +7,6 @@ export class SuggestionEngine {
 
     constructor(options: {
         longSentenceThreshold?: number;
-        repetitionThreshold?: number;
         language?: string;
     } = {}) {
         this.longSentenceThreshold = options.longSentenceThreshold || 25;
@@ -199,8 +198,13 @@ export class SuggestionEngine {
                 cliches: false, // Handled separately
             });
             
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            suggestions_raw.forEach((s: any) => {
+            interface WriteGoodSuggestion {
+                index: number;
+                offset: number;
+                reason: string;
+            }
+
+            suggestions_raw.forEach((s: WriteGoodSuggestion) => {
                  results.push({
                      id: `grammar-${s.index}`,
                      type: 'grammar',

@@ -7,7 +7,7 @@ export class PersonaPanel extends BasePanel {
     private plugin: SmartWriteCompanionPlugin;
 
     constructor(containerEl: HTMLElement, plugin: SmartWriteCompanionPlugin) {
-        super(containerEl, 'Persona Analysis');
+        super(containerEl, 'Persona analysis');
         this.plugin = plugin;
     }
 
@@ -43,19 +43,19 @@ export class PersonaPanel extends BasePanel {
         modeContainer.createEl('label', { text: 'Mode' });
         
         const modeSelect = modeContainer.createEl('select', { cls: 'dropdown smartwrite-w100' });
-        modeSelect.createEl('option', { value: 'analyze', text: '🧐 Analyze (Personas)' });
+        modeSelect.createEl('option', { value: 'analyze', text: '🧐 Analyze (personas)' });
         modeSelect.createEl('option', { value: 'translate', text: '🌍 Translate' });
 
         // 1. Target Selector (Current File vs Configured Longform Project)
         const targetSection = container.createDiv({ cls: 'smartwrite-stat-item smartwrite-mb-12' });
-        targetSection.createDiv({ cls: 'smartwrite-stat-label' }).setText('Analysis Target');
+        targetSection.createDiv({ cls: 'smartwrite-stat-label' }).setText('Analysis target');
         
         const targetSelect = targetSection.createEl('select', { cls: 'dropdown smartwrite-w100' });
         
         // Default Option
         // Default Option
         const defaultOption = targetSelect.createEl('option', { value: 'current' });
-        defaultOption.setText('📄 Current File');
+        defaultOption.setText('📄 Current file');
         
         // Longform Project Option (Only if enabled and configured)
         if (this.plugin.settings.longformEnabled && this.plugin.settings.longformProjectPath) {
@@ -71,7 +71,7 @@ export class PersonaPanel extends BasePanel {
 
         // 2. Persona Selector
         const selectorSection = container.createDiv({ cls: 'smartwrite-stat-item smartwrite-mb-16' });
-        selectorSection.createDiv({ cls: 'smartwrite-stat-label' }).setText('Select Persona');
+        selectorSection.createDiv({ cls: 'smartwrite-stat-label' }).setText('Select persona');
 
         const personas = this.plugin.personaManager.listPersonas();
         const select = selectorSection.createEl('select', { cls: 'dropdown' });
@@ -101,7 +101,7 @@ export class PersonaPanel extends BasePanel {
 
         // Output Language Dropdown
         const langContainer = container.createEl('div', { cls: 'smartwrite-control-group' });
-        langContainer.createEl('label', { text: 'Response Language' });
+        langContainer.createEl('label', { text: 'Response language' });
         
         const langSelect = langContainer.createEl('select', { cls: 'smartwrite-w100 smartwrite-mb-15' });
 
@@ -130,7 +130,7 @@ export class PersonaPanel extends BasePanel {
 
         // Analyze/Translate button
         const actionButton = container.createEl('button', {
-            text: 'Analyze Text',
+            text: modeSelect.value === 'translate' ? 'Translate text' : 'Analyze text',
             cls: 'mod-cta smartwrite-w100 smartwrite-mb-16'
         });
 
@@ -138,12 +138,12 @@ export class PersonaPanel extends BasePanel {
         modeSelect.addEventListener('change', () => {
             if (modeSelect.value === 'translate') {
                 selectorSection.addClass('is-hidden'); // Hide personas
-                actionButton.setText('Translate Text');
+                actionButton.setText('Translate text');
                 actionButton.classList.remove('mod-cta');
                 actionButton.classList.add('mod-warning'); // Different color
             } else {
                 selectorSection.removeClass('is-hidden'); // Show personas
-                actionButton.setText('Analyze Text');
+                actionButton.setText('Analyze text');
                 actionButton.classList.add('mod-cta');
                 actionButton.classList.remove('mod-warning');
             }
@@ -173,11 +173,11 @@ export class PersonaPanel extends BasePanel {
 
         // Option selector
         const optionHeader = container.createDiv({ cls: 'smartwrite-stat-label smartwrite-mb-12' });
-        optionHeader.setText('Choose Installation Method:');
+        optionHeader.setText('Choose installation method:');
 
         // Option 1: GUI App
         const option1 = container.createDiv({ cls: 'smartwrite-stat-item smartwrite-mb-16 smartwrite-p12-bg2-r6' });
-        option1.createEl('strong', { text: '📱 Option 1: Ollama App (Menu Bar Icon)' });
+        option1.createEl('strong', { text: '📱 Option 1: Ollama app (menu bar icon)' });
         option1.createEl('br');
         
         const step1a = option1.createDiv({ cls: 'smartwrite-mt-8-ml-12' });
@@ -199,7 +199,7 @@ export class PersonaPanel extends BasePanel {
 
         // Option 2: Daemon (Recommended)
         const option2 = container.createDiv({ cls: 'smartwrite-stat-item smartwrite-mb-16 smartwrite-p12-bg2-r6-accent-border' });
-        option2.createEl('strong', { text: '👻 Option 2: Background Service (Recommended)' });
+        option2.createEl('strong', { text: '👻 Option 2: Background service (recommended)' });
         option2.createEl('br');
         option2.createSpan({ text: 'Completely invisible, no menu bar icon', cls: 'smartwrite-mb-12-italic-f11' });
         
@@ -222,7 +222,7 @@ export class PersonaPanel extends BasePanel {
         const infoBox = container.createDiv({ 
             cls: 'smartwrite-suggestion-description smartwrite-mt-16-p12-bg2-r6-accent-left'
         });
-        infoBox.createEl('strong', { text: '💡 100% Local & Free' });
+        infoBox.createEl('strong', { text: '💡 100% local & free' });
         infoBox.createEl('br');
         infoBox.appendText('No internet required after setup. No subscriptions. Complete privacy.');
         infoBox.createEl('br');
@@ -230,7 +230,7 @@ export class PersonaPanel extends BasePanel {
 
         // Retry button
         const retryButton = container.createEl('button', {
-            text: 'Check Connection',
+            text: 'Check connection',
             cls: 'mod-cta smartwrite-mt-16 smartwrite-w100'
         });
         
@@ -249,7 +249,7 @@ export class PersonaPanel extends BasePanel {
         });
     }
 
-    public update(_data: any): void {
+    public update(_data: unknown): void {
         this.renderContent();
     }
 
@@ -258,7 +258,7 @@ export class PersonaPanel extends BasePanel {
         this.contentEl.empty();
         const container = this.contentEl.createDiv({ cls: 'smartwrite-persona-container' });
         
-        container.createEl('h3', { text: 'Installing Model', cls: 'smartwrite-mb-12' });
+        container.createEl('h3', { text: 'Installing model', cls: 'smartwrite-mb-12' });
         
         container.createDiv({ 
             cls: 'smartwrite-stat-label smartwrite-mb-12', 
@@ -314,7 +314,7 @@ export class PersonaPanel extends BasePanel {
                     const successDiv = resultsContainer.createDiv({ 
                         cls: 'smartwrite-suggestion-description smartwrite-success-box'
                     });
-                    successDiv.setText('✅ Analysis Document Created!');
+                    successDiv.setText('✅ Analysis document created!');
                 }
 
                 // Format content - NO ORIGINAL TEXT as requested
@@ -322,7 +322,7 @@ export class PersonaPanel extends BasePanel {
                 const fileContent = `# Analysis: ${title}\n\n` +
                     `**Persona:** ${result.personaName} ${result.personaId === 'fandom' ? '💫' : '📝'}\n` +
                     `**Date:** ${timestamp}\n\n` +
-                    `## AI Feedback\n\n${result.analysis}`;
+                    `## AI feedback\n\n${result.analysis}`;
 
                 // Create filename
                 const now = new Date();

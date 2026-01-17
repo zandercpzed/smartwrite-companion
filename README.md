@@ -42,7 +42,6 @@ An intelligent writing assistant plugin for Obsidian that helps you write better
    ```
 
    The installer will:
-
    - 🔍 Detect your Obsidian vaults automatically.
    - 📦 Install the plugin files to the correct folder.
    - 🤖 Check and install **Ollama** if missing (macOS/Linux) or verify installation (Windows).
@@ -107,8 +106,6 @@ The project is configured for automated workflows. Simply:
 All release processes are handled automatically, including submissions to both GitHub and the Obsidian community plugin repository.
 
 ## Screenshots
-
-[Add screenshots here]
 
 ## License
 

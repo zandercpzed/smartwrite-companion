@@ -127,7 +127,7 @@ export class PersonaManager {
             const totalChunks = chunks.length;
             const analyses: string[] = [];
 
-            if (onProgress) onProgress('Initializing Analysis...', 0);
+            if (onProgress) onProgress('Initializing analysis...', 0);
 
             for (let i = 0; i < totalChunks; i++) {
                 const chunk = chunks[i];
@@ -156,7 +156,7 @@ export class PersonaManager {
             if (onProgress) onProgress('Finalizing...', 100);
 
             const finalAnalysis = totalChunks > 1 
-                ? `**Note:** This text was analyzed in ${totalChunks} parts.\n\n` + analyses.map((a, i) => `### Part ${i+1} Analysis\n${a}`).join('\n\n---\n\n')
+                ? `**Note:** This text was analyzed in ${totalChunks} parts.\n\n` + analyses.map((a, i) => `### Part ${i+1} analysis\n${a}`).join('\n\n---\n\n')
                 : analyses[0];
 
             return {

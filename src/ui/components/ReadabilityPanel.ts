@@ -32,7 +32,7 @@ export class ReadabilityPanel extends BasePanel {
         // Level & Progress Bar (Matches Session Stats goal bar)
         const progressContainer = this.contentEl.createDiv({ cls: 'smartwrite-stat-item' });
         const levelRow = progressContainer.createDiv({ cls: 'smartwrite-stat-row' });
-        levelRow.createSpan({ cls: 'smartwrite-stat-label' }).setText("Overall Level");
+        levelRow.createSpan({ cls: 'smartwrite-stat-label' }).setText("Overall level");
         levelRow.createSpan({ cls: 'smartwrite-stat-mono' }).setText(this.scores.overallLevel.replace('-', ' ').toUpperCase());
 
         const progressBar = progressContainer.createDiv({ cls: 'smartwrite-progress-bar' });
@@ -58,12 +58,12 @@ export class ReadabilityPanel extends BasePanel {
         const select = footer.createEl('select', { cls: 'smartwrite-formula-dropdown' });
         
         const formulas = [
-            { id: 'fleschReadingEase', name: 'Flesch Reading Ease' },
-            { id: 'fleschKincaidGrade', name: 'Flesch-Kincaid Grade' },
-            { id: 'gunningFog', name: 'Gunning Fog Index' },
-            { id: 'colemanLiau', name: 'Coleman-Liau Index' },
-            { id: 'automatedReadability', name: 'Automated Readability' },
-            { id: 'daleChall', name: 'Dale-Chall Score' }
+            { id: 'fleschReadingEase', name: 'Flesch reading ease' },
+            { id: 'fleschKincaidGrade', name: 'Flesch-Kincaid grade' },
+            { id: 'gunningFog', name: 'Gunning fog index' },
+            { id: 'colemanLiau', name: 'Coleman-Liau index' },
+            { id: 'automatedReadability', name: 'Automated readability' },
+            { id: 'daleChall', name: 'Dale-Chall score' }
         ];
 
         formulas.forEach(f => {

@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, PluginSettingTab, Setting, Modal, Notice, setIcon } from 'obsidian';
 import SmartWriteCompanionPlugin from './main';
 
 export interface SmartWriteSettings {
@@ -52,10 +52,10 @@ export class SmartWriteSettingTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        containerEl.createEl('h2', { text: 'SmartWrite Companion Settings' });
+        new Setting(containerEl).setName('SmartWrite companion settings').setHeading();
 
         new Setting(containerEl)
-            .setName('Daily Word Goal')
+            .setName('Daily word goal')
             .setDesc('Set your daily writing goal in words')
             .addText(text => text
                 .setPlaceholder('1000')
@@ -69,7 +69,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('Reading Speed')
+            .setName('Reading speed')
             .setDesc('Words per minute for reading time calculations')
             .addText(text => text
                 .setPlaceholder('200')
@@ -82,7 +82,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
                     }
                 }));
 
-        containerEl.createEl('h3', { text: 'LLM Integration' });
+        new Setting(containerEl).setName('LLM integration').setHeading();
 
         new Setting(containerEl)
             .setName('Enable LLM')
@@ -97,7 +97,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 
         if (this.plugin.settings.ollamaEnabled) {
             new Setting(containerEl)
-                .setName('LLM Endpoint')
+                .setName('LLM endpoint')
                 .setDesc('The URL of your local LLM server')
                 .addText(text => text
                     .setPlaceholder('http://localhost:11434')
@@ -108,7 +108,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
                     }));
 
             // Model Management Section
-            containerEl.createEl('h3', { text: 'Manage Models', cls: 'smartwrite-mt-20-mb-10' });
+            new Setting(containerEl).setName('Manage models').setHeading();
             
             const modelsContainer = containerEl.createDiv({ cls: 'smartwrite-models-container' });
             void this.renderModelsSection(modelsContainer);
@@ -116,10 +116,10 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 
 
         new Setting(containerEl)
-            .setName('Output Language')
-            .setDesc('Default language for AI responses (Auto matches input text)')
+            .setName('Output language')
+            .setDesc('Default language for AI responses (auto matches input text)')
             .addDropdown(dropdown => dropdown
-                .addOption('auto', 'Auto (Match Input)')
+                .addOption('auto', 'Auto (match input)')
                 .addOption('pt-br', 'Portuguese (BR)')
                 .addOption('en-us', 'English (US)')
                 .addOption('es', 'Spanish')
@@ -132,11 +132,11 @@ export class SmartWriteSettingTab extends PluginSettingTab {
                 }));
 
         // Longform Integration Section
-        containerEl.createEl('h3', { text: 'Longform Integration' });
+        new Setting(containerEl).setName('Longform integration').setHeading();
 
         new Setting(containerEl)
-            .setName('Enable Longform Integration')
-            .setDesc('Allow analysis of full Longform projects')
+            .setName('Enable longform integration')
+            .setDesc('Allow analysis of full longform projects')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.longformEnabled)
                 .onChange(async (value) => {
@@ -149,8 +149,8 @@ export class SmartWriteSettingTab extends PluginSettingTab {
              const projects = this.plugin.longformService.getProjects();
              
              new Setting(containerEl)
-                .setName('Active Longform Project')
-                .setDesc('Select the project to be analyzed when "Longform Project" is selected in the panel.')
+                .setName('Active longform project')
+                .setDesc('Select the project to be analyzed when "Longform project" is selected in the panel.')
                 .addDropdown(dropdown => {
                     // Default / None option
                     dropdown.addOption('', 'Select a project...');
@@ -169,8 +169,6 @@ export class SmartWriteSettingTab extends PluginSettingTab {
     }
 
     async renderModelsSection(container: HTMLElement): Promise<void> {
-        const { Notice } = import('obsidian').then(m => m) as any; // This is still messy, I'll use imports from top.
-        // Wait, I already have imports at the top of the file!
         container.empty();
         
         // Recommended Models List
@@ -207,7 +205,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
             const nameEl = infoDiv.createDiv({ cls: 'model-name smartwrite-fw-bold smartwrite-f13' });
             nameEl.setText(model.name);
             if (isSelected) {
-                nameEl.createSpan({ text: ' (Active)', cls: 'smartwrite-model-active-badge' });
+                nameEl.createSpan({ text: ' (active)', cls: 'smartwrite-model-active-badge' });
             }
             
             infoDiv.createDiv({ cls: 'model-meta smartwrite-model-info-meta' })
@@ -230,11 +228,11 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 
                 // Delete Button (Trash Icon)
                 const deleteBtn = actionsDiv.createEl('button', { cls: 'clickable-icon destructive smartwrite-model-delete-btn' });
-                import('obsidian').then(({ setIcon }) => setIcon(deleteBtn, 'trash'));
+                setIcon(deleteBtn, 'trash');
                 deleteBtn.setAttribute('aria-label', 'Uninstall Model');
                 
-                deleteBtn.addEventListener('click', async () => {
-                    if (confirm(`Are you sure you want to uninstall ${model.name}?`)) {
+                deleteBtn.addEventListener('click', () => {
+                    new ConfirmationModal(this.app, `Are you sure you want to uninstall ${model.name}?`, async () => {
                         new Notice(`Uninstalling ${model.name}...`);
                         const success = await this.plugin.ollamaService.deleteModel(model.id);
                         if (success) {
@@ -244,11 +242,11 @@ export class SmartWriteSettingTab extends PluginSettingTab {
                                 this.plugin.settings.ollamaModel = '';
                                 await this.plugin.saveSettings();
                             }
-                            this.renderModelsSection(container); // Refresh
+                            await this.renderModelsSection(container); // Refresh
                         } else {
                             new Notice('Failed to uninstall model.');
                         }
-                    }
+                    }).open();
                 });
 
             } else {
@@ -283,5 +281,40 @@ export class SmartWriteSettingTab extends PluginSettingTab {
                 });
             }
         }
+    }
+}
+
+class ConfirmationModal extends Modal {
+    private onConfirm: () => void;
+    private message: string;
+
+    constructor(app: App, message: string, onConfirm: () => void) {
+        super(app);
+        this.message = message;
+        this.onConfirm = onConfirm;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.createEl('h2', { text: 'Confirm action' });
+        contentEl.createEl('p', { text: this.message });
+
+        const buttonContainer = contentEl.createDiv({ cls: 'smartwrite-modal-buttons smartwrite-mt-20' });
+        
+        const confirmBtn = buttonContainer.createEl('button', { text: 'Confirm', cls: 'mod-cta' });
+        confirmBtn.addEventListener('click', () => {
+            this.onConfirm();
+            this.close();
+        });
+
+        const cancelBtn = buttonContainer.createEl('button', { text: 'Cancel' });
+        cancelBtn.addEventListener('click', () => {
+            this.close();
+        });
+    }
+
+    onClose() {
+        const { contentEl } = this;
+        contentEl.empty();
     }
 }

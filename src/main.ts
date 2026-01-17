@@ -88,14 +88,14 @@ export default class SmartWriteCompanionPlugin extends Plugin {
         this.registerEditorExtension(Highlighter.getExtension());
 
         // Add ribbon icon
-        this.addRibbonIcon('lightbulb', 'SmartWrite Companion', () => {
+        this.addRibbonIcon('lightbulb', 'SmartWrite companion', () => {
             this.toggleSidebar();
         });
 
         // Add command to toggle sidebar
         this.addCommand({
             id: 'toggle-smartwrite-sidebar',
-            name: 'Toggle SmartWrite Sidebar',
+            name: 'Toggle SmartWrite sidebar',
             callback: () => {
                 this.toggleSidebar();
             }
@@ -113,7 +113,7 @@ export default class SmartWriteCompanionPlugin extends Plugin {
             this.app.workspace.on('active-leaf-change', (leaf) => {
                 if (leaf && leaf.view instanceof MarkdownView) {
                     this.sessionTracker.resetFileBaseline();
-                    this.analyzeAndUpdate(leaf.view.editor.getValue());
+                    void this.analyzeAndUpdate(leaf.view.editor.getValue());
                 }
             })
         );
@@ -123,7 +123,7 @@ export default class SmartWriteCompanionPlugin extends Plugin {
             this.app.workspace.on('file-open', () => {
                 const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
                 if (activeView) {
-                    this.analyzeAndUpdate(activeView.editor.getValue());
+                    void this.analyzeAndUpdate(activeView.editor.getValue());
                 }
             })
         );
@@ -165,7 +165,7 @@ export default class SmartWriteCompanionPlugin extends Plugin {
             // Trigger initial analysis if there's an active editor
             const activeView = workspace.getActiveViewOfType(MarkdownView);
             if (activeView) {
-                this.analyzeAndUpdate(activeView.editor.getValue());
+                await this.analyzeAndUpdate(activeView.editor.getValue());
             }
         }
     }

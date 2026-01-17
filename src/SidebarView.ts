@@ -25,7 +25,7 @@ export class SidebarView extends ItemView {
     }
 
     getDisplayText(): string {
-        return 'SmartWrite Companion';
+        return 'SmartWrite companion';
     }
 
     getIcon(): string {
@@ -84,7 +84,7 @@ export class SidebarView extends ItemView {
         // Title container
         const titleContainer = header.createDiv({ cls: 'smartwrite-title-container' });
         const title = titleContainer.createDiv({ cls: 'smartwrite-title' });
-        title.setText('SmartWrite Companion');
+        title.setText('SmartWrite companion');
         const version = titleContainer.createDiv({ cls: 'smartwrite-version' });
         version.setText(`versão: ${this.plugin.manifest.version}`);
 
@@ -105,11 +105,11 @@ export class SidebarView extends ItemView {
 
         // Title removed as per user request
 
-        this.createSettingToggle(this.settingsPanel, 'Session Stats', 'showSessionStats');
-        this.createSettingToggle(this.settingsPanel, 'Text Metrics', 'showTextMetrics');
+        this.createSettingToggle(this.settingsPanel, 'Session stats', 'showSessionStats');
+        this.createSettingToggle(this.settingsPanel, 'Text metrics', 'showTextMetrics');
         this.createSettingToggle(this.settingsPanel, 'Readability', 'showReadability');
         this.createSettingToggle(this.settingsPanel, 'Suggestions', 'showSuggestions');
-        this.createSettingToggle(this.settingsPanel, 'Persona Analysis', 'showPersona');
+        this.createSettingToggle(this.settingsPanel, 'Persona analysis', 'showPersona');
     }
 
     private createSettingToggle(container: HTMLElement, label: string, settingKey: keyof typeof this.plugin.settings): void {
@@ -137,11 +137,11 @@ export class SidebarView extends ItemView {
 
     private refreshPanels(): void {
         const settings = this.plugin.settings;
-        if (this.sessionStatsPanel) settings.showSessionStats ? this.sessionStatsPanel.show() : this.sessionStatsPanel.hide();
-        if (this.textMetricsPanel) settings.showTextMetrics ? this.textMetricsPanel.show() : this.textMetricsPanel.hide();
-        if (this.suggestionsPanel) settings.showSuggestions ? this.suggestionsPanel.show() : this.suggestionsPanel.hide();
-        if (this.readabilityPanel) settings.showReadability ? this.readabilityPanel.show() : this.readabilityPanel.hide();
-        if (this.personaPanel) settings.showPersona ? this.personaPanel.show() : this.personaPanel.hide();
+        if (this.sessionStatsPanel) { settings.showSessionStats ? this.sessionStatsPanel.show() : this.sessionStatsPanel.hide(); }
+        if (this.textMetricsPanel) { settings.showTextMetrics ? this.textMetricsPanel.show() : this.textMetricsPanel.hide(); }
+        if (this.suggestionsPanel) { settings.showSuggestions ? this.suggestionsPanel.show() : this.suggestionsPanel.hide(); }
+        if (this.readabilityPanel) { settings.showReadability ? this.readabilityPanel.show() : this.readabilityPanel.hide(); }
+        if (this.personaPanel) { settings.showPersona ? this.personaPanel.show() : this.personaPanel.hide(); }
     }
 
 

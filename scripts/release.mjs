@@ -87,7 +87,7 @@ function main() {
     }
 
     // Create new release
-    const releaseCommand = `gh release create ${version} --title "SmartWrite Companion ${version}" --notes "${changelog.replace(/"/g, '\\"')}"`;
+    const releaseCommand = `gh release create ${version} --title "SmartWrite Companion ${version}" --notes "${changelog.replace(/"/g, '\\"')}" main.js manifest.json styles.css`;
     runCommand(releaseCommand, 'Creating GitHub release');
 
     console.log(`\n🎉 Release ${version} created successfully!`);
