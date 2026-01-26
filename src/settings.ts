@@ -57,7 +57,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('Daily word goal')
-            .setDesc('Set your daily writing goal in words')
+            .setDesc('Set your daily writing goal in words.')
             .addText(text => text
                 .setPlaceholder('1000')
                 .setValue(this.plugin.settings.dailyGoal.toString())
@@ -71,7 +71,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('Reading speed')
-            .setDesc('Words per minute for reading time calculations')
+            .setDesc('Words per minute for reading time calculations.')
             .addText(text => text
                 .setPlaceholder('200')
                 .setValue(this.plugin.settings.readingSpeed.toString())
@@ -86,8 +86,8 @@ export class SmartWriteSettingTab extends PluginSettingTab {
         new Setting(containerEl).setName('LLM integration').setHeading();
 
         new Setting(containerEl)
-            .setName('Enable LLM')
-            .setDesc('Enable local LLM integration for personas and smart suggestions')
+            .setName('Enable LLM integration')
+            .setDesc('Enable local LLM integration for personas and smart suggestions.')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.ollamaEnabled)
                 .onChange(async (value) => {
@@ -99,7 +99,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
         if (this.plugin.settings.ollamaEnabled) {
             new Setting(containerEl)
                 .setName('LLM endpoint')
-                .setDesc('The URL of your local LLM server')
+                .setDesc('The URL of your local LLM server.')
                 .addText(text => text
                     .setPlaceholder('http://localhost:11434')
                     .setValue(this.plugin.settings.ollamaEndpoint)
@@ -118,7 +118,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('Output language')
-            .setDesc('Default language for AI responses (auto matches input text)')
+            .setDesc('Default language for AI responses. "Auto" matches the input text language.')
             .addDropdown(dropdown => dropdown
                 .addOption('auto', 'Auto (match input)')
                 .addOption('pt-br', 'Portuguese (BR)')
@@ -137,7 +137,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('Enable longform integration')
-            .setDesc('Allow analysis of full longform projects')
+            .setDesc('Allow analysis of full longform projects.')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.longformEnabled)
                 .onChange(async (value) => {
@@ -151,7 +151,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
              
              new Setting(containerEl)
                 .setName('Active longform project')
-                .setDesc('Select the project to be analyzed when "Longform project" is selected in the panel.')
+                .setDesc('Select the project for analysis when "Longform project" is chosen in the panel.')
                 .addDropdown(dropdown => {
                     // Default / None option
                     dropdown.addOption('', 'Select a project...');
@@ -186,7 +186,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
         
         if (!isConnected) {
             const errorDiv = container.createDiv({ cls: 'smartwrite-setting-error smartwrite-error-box' });
-            errorDiv.setText('⚠️ Ollama is not connected. Please start Ollama to manage models.');
+            errorDiv.setText('⚠️ Ollama is not connected. Please start Ollama to manage your models.');
             return;
         }
 
