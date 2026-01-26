@@ -166,9 +166,9 @@ export class PersonaPanel extends BasePanel {
 
     private renderSetupGuide(container: HTMLElement): void {
         // ... (existing implementation unchanged) ...
-        container.createEl('h3', { 
+        container.createEl('div', { 
             text: '🚀 Setup Ollama', 
-            cls: 'smartwrite-mb-16-accent' 
+            cls: 'smartwrite-section-heading smartwrite-mb-16-accent' 
         });
 
         // Option selector
@@ -258,7 +258,7 @@ export class PersonaPanel extends BasePanel {
         this.contentEl.empty();
         const container = this.contentEl.createDiv({ cls: 'smartwrite-persona-container' });
         
-        container.createEl('h3', { text: 'Installing model', cls: 'smartwrite-mb-12' });
+        container.createEl('div', { text: 'Installing model', cls: 'smartwrite-section-heading smartwrite-mb-12' });
         
         container.createDiv({ 
             cls: 'smartwrite-stat-label smartwrite-mb-12', 

@@ -296,7 +296,7 @@ class ConfirmationModal extends Modal {
 
     onOpen() {
         const { contentEl } = this;
-        contentEl.createEl('h2', { text: 'Confirm action' });
+        contentEl.createEl('div', { text: 'Confirm action', cls: 'modal-title' });
         contentEl.createEl('p', { text: this.message });
 
         const buttonContainer = contentEl.createDiv({ cls: 'smartwrite-modal-buttons smartwrite-mt-20' });
