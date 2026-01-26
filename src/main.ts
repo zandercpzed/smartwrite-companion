@@ -130,7 +130,7 @@ export default class SmartWriteCompanionPlugin extends Plugin {
     }
 
     onunload() {
-        this.sessionTracker.endSession();
+        void this.sessionTracker.endSession();
     }
 
     async loadSettings() {
@@ -172,7 +172,7 @@ export default class SmartWriteCompanionPlugin extends Plugin {
 
     private onEditorChange(editor: MarkdownView['editor'], _view: MarkdownView): void {
         const text = editor.getValue();
-        this.analyzeAndUpdate(text);
+        void this.analyzeAndUpdate(text);
     }
 
     private async analyzeAndUpdate(text: string): Promise<void> {
@@ -240,7 +240,7 @@ export default class SmartWriteCompanionPlugin extends Plugin {
         if (leaves.length > 0) {
             this.app.workspace.detachLeavesOfType('smartwrite-sidebar');
         } else {
-            this.activateView();
+            void this.activateView();
         }
     }
 

@@ -84,10 +84,10 @@ export class PersonaPanel extends BasePanel {
             }
         });
 
-        select.addEventListener('change', async (e) => {
+        select.addEventListener('change', (e) => {
             const target = e.target as HTMLSelectElement;
             this.plugin.settings.selectedPersona = target.value;
-            await this.plugin.saveSettings();
+            void this.plugin.saveSettings();
         });
 
         // Persona description
@@ -122,10 +122,10 @@ export class PersonaPanel extends BasePanel {
         // Set default from settings
         langSelect.value = this.plugin.settings.outputLanguage || 'auto';
 
-        langSelect.addEventListener('change', async (e) => {
+        langSelect.addEventListener('change', (e) => {
             const target = e.target as HTMLSelectElement;
             this.plugin.settings.outputLanguage = target.value;
-            await this.plugin.saveSettings();
+            void this.plugin.saveSettings();
         });
 
         // Analyze/Translate button
@@ -149,11 +149,11 @@ export class PersonaPanel extends BasePanel {
             }
         });
 
-        actionButton.addEventListener('click', async () => {
+        actionButton.addEventListener('click', () => {
             if (modeSelect.value === 'translate') {
-                await this.performTranslation(container, actionButton, targetSelect.value, langSelect.value);
+                void this.performTranslation(container, actionButton, targetSelect.value, langSelect.value);
             } else {
-                await this.performAnalysis(container, actionButton, targetSelect.value);
+                void this.performAnalysis(container, actionButton, targetSelect.value);
             }
         });
 
@@ -173,11 +173,11 @@ export class PersonaPanel extends BasePanel {
 
         // Option selector
         const optionHeader = container.createDiv({ cls: 'smartwrite-stat-label smartwrite-mb-12' });
-        optionHeader.setText('Choose installation method:');
+        optionHeader.setText('Choose your installation method:');
 
         // Option 1: GUI App
         const option1 = container.createDiv({ cls: 'smartwrite-stat-item smartwrite-mb-16 smartwrite-p12-bg2-r6' });
-        option1.createEl('strong', { text: '📱 Option 1: Ollama app (menu bar icon)' });
+        option1.createEl('strong', { text: '📱 Option 1: Ollama app (with menu bar icon)' });
         option1.createEl('br');
         
         const step1a = option1.createDiv({ cls: 'smartwrite-mt-8-ml-12' });
@@ -191,7 +191,7 @@ export class PersonaPanel extends BasePanel {
         
         const step2a = option1.createDiv({ cls: 'smartwrite-ml-12' });
         step2a.createSpan({ text: '2. ', cls: 'smartwrite-fw-bold' });
-        step2a.appendText('Drag to Applications folder');
+        step2a.appendText('Drag to your Applications folder');
         
         const step3a = option1.createDiv({ cls: 'smartwrite-ml-12' });
         step3a.createSpan({ text: '3. ', cls: 'smartwrite-fw-bold' });
@@ -199,12 +199,12 @@ export class PersonaPanel extends BasePanel {
 
         // Option 2: Daemon (Recommended)
         const option2 = container.createDiv({ cls: 'smartwrite-stat-item smartwrite-mb-16 smartwrite-p12-bg2-r6-accent-border' });
-        option2.createEl('strong', { text: '👻 Option 2: Background service (recommended)' });
+        option2.createEl('strong', { text: '👻 Option 2: Background service (Recommended)' });
         option2.createEl('br');
-        option2.createSpan({ text: 'Completely invisible, no menu bar icon', cls: 'smartwrite-mb-12-italic-f11' });
+        option2.createSpan({ text: 'This is completely invisible, with no menu bar icon.', cls: 'smartwrite-mb-12-italic-f11' });
         
         const brewNote = option2.createDiv({ cls: 'smartwrite-mt-8-f12-italic' });
-        brewNote.setText('Requirements: Homebrew installed');
+        brewNote.setText('Requires Homebrew to be installed.');
         
         const brewLink = option2.createEl('a', {
             text: 'Install Homebrew',
@@ -222,11 +222,11 @@ export class PersonaPanel extends BasePanel {
         const infoBox = container.createDiv({ 
             cls: 'smartwrite-suggestion-description smartwrite-mt-16-p12-bg2-r6-accent-left'
         });
-        infoBox.createEl('strong', { text: '💡 100% local & free' });
+        infoBox.createEl('strong', { text: '💡 100% local and free' });
         infoBox.createEl('br');
-        infoBox.appendText('No internet required after setup. No subscriptions. Complete privacy.');
+        infoBox.appendText('No internet is required after setup. There are no subscriptions, and you have complete privacy.');
         infoBox.createEl('br');
-        infoBox.appendText('Once running, this plugin auto-downloads the AI model.');
+        infoBox.appendText('Once running, this plugin will automatically download the required AI model.');
 
         // Retry button
         const retryButton = container.createEl('button', {
@@ -234,18 +234,21 @@ export class PersonaPanel extends BasePanel {
             cls: 'mod-cta smartwrite-mt-16 smartwrite-w100'
         });
         
-        retryButton.addEventListener('click', async () => {
+        retryButton.addEventListener('click', () => {
             retryButton.setText('Checking...');
             retryButton.disabled = true;
             
-            const connected = await this.plugin.ollamaService.checkConnection();
-            
-            if (connected) {
-                this.renderContent();
-            } else {
+            this.plugin.ollamaService.checkConnection().then(connected => {
+                if (connected) {
+                    this.renderContent();
+                } else {
+                    retryButton.setText('Check Connection');
+                    retryButton.disabled = false;
+                }
+            }).catch(() => {
                 retryButton.setText('Check Connection');
                 retryButton.disabled = false;
-            }
+            });
         });
     }
 
@@ -333,14 +336,14 @@ export class PersonaPanel extends BasePanel {
                 const newFile = await this.plugin.app.vault.create(filename, fileContent);
                 await this.plugin.app.workspace.getLeaf('tab').openFile(newFile);
                 
-                new Notice(`Analysis saved to ${filename}`);
+                new Notice(`Analysis saved to: ${filename}`);
             }
         } catch (error) {
             console.error('Analysis failed:', error);
             new Notice('An error occurred during analysis.');
         } finally {
             // Reset UI state - Stop Animation in all cases
-            button.setText('Analyze Text');
+            button.setText('Analyze text');
             button.removeClass('smartwrite-btn-processing');
             button.disabled = false;
         }
@@ -349,7 +352,7 @@ export class PersonaPanel extends BasePanel {
 
     private async performTranslation(_container: HTMLElement, button: HTMLButtonElement, targetValue: string, targetLang: string) {
         if (targetLang === 'auto') {
-            new Notice('Please select a specific Target Language for translation.');
+            new Notice('Please select a specific target language for translation.');
             return;
         }
 
@@ -387,14 +390,14 @@ export class PersonaPanel extends BasePanel {
                 const newFile = await this.plugin.app.vault.create(filename, fileContent);
                 await this.plugin.app.workspace.getLeaf('tab').openFile(newFile);
                 
-                new Notice(`Translation saved: ${filename}`);
+                new Notice(`Translation saved to: ${filename}`);
             }
 
         } catch (e) {
             new Notice('Translation error.');
             console.error(e);
         } finally {
-            button.setText('Translate Text');
+            button.setText('Translate text');
             button.disabled = false;
             button.removeClass('smartwrite-btn-processing');
         }
@@ -432,14 +435,14 @@ export class PersonaPanel extends BasePanel {
                     title = `Project - ${project.name}`;
                 } catch (err) {
                     console.error('Failed to compile project:', err);
-                    new Notice('Failed to compile project');
+                    new Notice('Failed to compile the project.');
                     return { text: null, title: '' };
                 }
             }
         }
         
         if (!text || text.trim().length === 0) {
-            new Notice('No text found.');
+            new Notice('No text found to analyze.');
             return { text: null, title: '' };
         }
 

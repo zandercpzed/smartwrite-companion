@@ -187,7 +187,7 @@ export class SuggestionEngine {
         const results: Suggestion[] = [];
         try {
             const writeGood = (await import('write-good')).default;
-            const suggestions_raw = (writeGood as any)(text, {
+            const suggestions_raw = writeGood(text, {
                 passive: false, // Handled separately
                 illusion: true,
                 so: true,
@@ -198,13 +198,7 @@ export class SuggestionEngine {
                 cliches: false, // Handled separately
             });
             
-            interface WriteGoodSuggestion {
-                index: number;
-                offset: number;
-                reason: string;
-            }
-
-            suggestions_raw.forEach((s: WriteGoodSuggestion) => {
+            suggestions_raw.forEach((s) => {
                  results.push({
                      id: `grammar-${s.index}`,
                      type: 'grammar',

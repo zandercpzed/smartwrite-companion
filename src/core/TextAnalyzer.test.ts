@@ -17,34 +17,29 @@ describe('TextAnalyzer', () => {
 
     it('should extract words correctly', () => {
         const text = "Hello, world!";
-        const words = (analyzer as any).extractWords(text);
-        expect(words).toEqual(['Hello', 'world']);
+        const result = analyzer.analyze(text);
+        expect(result.words).toEqual(['Hello', 'world']);
     });
 
     it('should extract sentences correctly', () => {
         const text = "First sentence. Second sentence! Third?";
-        const sentences = (analyzer as any).extractSentences(text);
-        expect(sentences).toEqual(['First sentence.', 'Second sentence!', 'Third?']);
+        const result = analyzer.analyze(text);
+        expect(result.sentences).toEqual(['First sentence.', 'Second sentence!', 'Third?']);
     });
 
     it('should extract paragraphs correctly', () => {
         const text = "Paragraph one.\n\nParagraph two.";
-        const paragraphs = (analyzer as any).extractParagraphs(text);
-        expect(paragraphs).toEqual(['Paragraph one.', 'Paragraph two.']);
+        const result = analyzer.analyze(text);
+        expect(result.paragraphs).toEqual(['Paragraph one.', 'Paragraph two.']);
     });
 
-    it('should count syllables correctly', () => {
+    it('should count syllables correctly for individual words', () => {
         // Based on common english hyphenation, let's assume a reasonable approximation.
-        const syllablesForSyllable = (analyzer as any).countSyllables(['syllable']);
-        expect(syllablesForSyllable).toBe(3);
-
-        const syllablesForExample = (analyzer as any).countSyllables(['example']);
-        expect(syllablesForExample).toBe(3);
-
+        expect(analyzer.analyze('syllable').syllables).toBe(3);
+        expect(analyzer.analyze('example').syllables).toBe(3);
         // This is a tricky one, let's see. The hyphen NPM package documentation is a bit sparse.
         // 'extraordinary' -> ex-traor-di-nar-y -> 5
-        const syllablesForExtraordinary = (analyzer as any).countSyllables(['extraordinary']);
-        expect(syllablesForExtraordinary).toBe(5);
+        expect(analyzer.analyze('extraordinary').syllables).toBe(5);
     });
 
     it('should analyze frequencies and repetitions', () => {

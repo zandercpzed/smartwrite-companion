@@ -123,7 +123,7 @@ export class SessionTracker {
         progress.wordsWritten += this.currentSession.wordsWritten;
         progress.sessions.push(this.currentSession);
 
-        this.saveDailyProgress();
+        void this.saveDailyProgress();
     }
 
     private async loadDailyProgress(): Promise<void> {

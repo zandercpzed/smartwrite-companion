@@ -27,7 +27,7 @@ export class SuggestionsPanel extends BasePanel {
             type: string,
             severity: string,
             count: number,
-            instances: any[] // Using any here temporarily to support mixed detail types until full strict mode
+            instances: Suggestion[] | RepetitionDetail[]
         }>();
 
         for (const s of this.suggestions.suggestions) {
@@ -36,8 +36,8 @@ export class SuggestionsPanel extends BasePanel {
                 aggregated.set('repetition', {
                     type: 'repetition',
                     severity: s.severity,
-                    count: (s.details as RepetitionDetail[]).length,
-                    instances: s.details as RepetitionDetail[]
+                    count: s.details.length,
+                    instances: s.details
                 });
                 continue;
             }
