@@ -52,7 +52,8 @@ export class SmartWriteSettingTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        new Setting(containerEl).setName('General').setHeading();
+        // General settings
+
 
         new Setting(containerEl)
             .setName('Daily word goal')
@@ -229,7 +230,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
                 // Delete Button (Trash Icon)
                 const deleteBtn = actionsDiv.createEl('button', { cls: 'clickable-icon destructive smartwrite-model-delete-btn' });
                 setIcon(deleteBtn, 'trash');
-                deleteBtn.setAttribute('aria-label', 'Uninstall Model');
+                deleteBtn.setAttribute('aria-label', 'Uninstall model');
                 
                 deleteBtn.addEventListener('click', () => {
                     new ConfirmationModal(this.app, `Are you sure you want to uninstall ${model.name}?`, async () => {

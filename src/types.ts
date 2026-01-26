@@ -46,7 +46,15 @@ export interface Suggestion {
     };
     replacement?: string;
     explanation?: string;
-    details?: any;
+    details?: SuggestionDetails;
+}
+
+export type SuggestionDetails = RepetitionDetail[] | string[];
+
+export interface RepetitionDetail {
+    word: string;
+    count: number;
+}
 }
 
 export interface SuggestionsResult {

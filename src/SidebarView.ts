@@ -32,7 +32,7 @@ export class SidebarView extends ItemView {
         return 'pencil';
     }
 
-    async onOpen(): Promise<void> {
+    onOpen(): Promise<void> {
         const container = this.containerEl.children[1];
         container.empty();
         container.addClass('smartwrite-container');
@@ -92,10 +92,8 @@ export class SidebarView extends ItemView {
         const settingsBtn = header.createDiv({ cls: 'smartwrite-settings-btn' });
         settingsBtn.setText('⚙');
         
-        import('obsidian').then(({ setIcon }) => {
-            settingsBtn.empty(); // Clear text before adding icon
-            setIcon(settingsBtn, 'settings');
-        });
+        settingsBtn.empty(); // Clear text before adding icon
+        setIcon(settingsBtn, 'settings');
 
         settingsBtn.addEventListener('click', () => this.toggleSettingsPanel());
     }
