@@ -11,7 +11,9 @@ An intelligent writing assistant plugin for Obsidian that helps you write better
 - **📖 Readability Analysis**: 10 formulas (Flesch, Gunning Fog, SMOG, etc.) tailored for English and Portuguese.
 - **✍️ Writing Suggestions**: Detects repeated words, long sentences, passive voice, and clichés.
 - **🤖 AI Personas**: Get detailed feedback from 8 synthetic readers (Critical Editor, Booktuber, etc.) via local AI.
-- **📂 File-Based Analysis**: AI feedback is saved to a new markdown file for easy reference.
+- **🔄 Analysis Queuing**: Queue multiple analysis tasks and monitor progress in real-time.
+- **📊 Status & Queue Monitor**: View active task progress and manage pending requests.
+- **📂 Flexible Output**: Select custom output directories for analysis reports.
 - **⚙️ Model Management**: Download and manage AI models (Llama 3, Mistral, etc.) directly from settings.
 - **🌍 Multilingual**: Optimized for EN, PT, ES, FR, DE.
 
