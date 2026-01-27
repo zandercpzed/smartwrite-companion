@@ -74,6 +74,7 @@ npm run backup   # Daily backup to BKP/BKP-[date].zip
 3. Ensure all AI processing works offline
 4. Follow Obsidian community plugin guidelines
 5. Test on both desktop and mobile (when applicable)
+6. Permanent Sync Rule: Always synchronize build artifacts (main.js, manifest.json, styles.css) to both "Z•Edições" and "smartwriter-analyzer" vaults.
 
 ## Current Focus
 Mobile support adaptation - ensuring the plugin works seamlessly on Obsidian mobile apps (iOS/Android) while maintaining desktop functionality.

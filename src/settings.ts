@@ -1,6 +1,9 @@
 import { App, PluginSettingTab, Setting, Modal, Notice, setIcon } from 'obsidian';
 import SmartWriteCompanionPlugin from './main';
 
+import { Persona } from './types';
+import { PersonaEditorModal } from './ui/modals/PersonaEditorModal';
+
 export interface SmartWriteSettings {
     dailyGoal: number;
     readingSpeed: number;
@@ -15,10 +18,15 @@ export interface SmartWriteSettings {
     ollamaModel: string;
     ollamaEnabled: boolean;
     selectedPersona: string;
+    customPersonas: Persona[];
     // Longform Settings (Phase 3+)
     longformEnabled: boolean;
     longformProjectPath: string;
     outputLanguage: string;
+    enabledPersonas: string[];
+    // Background Analysis
+    backgroundAnalysisEnabled: boolean;
+    backgroundAnalysisThreshold: number;
 }
 
 export const DEFAULT_SETTINGS: SmartWriteSettings = {
@@ -35,9 +43,19 @@ export const DEFAULT_SETTINGS: SmartWriteSettings = {
     ollamaModel: 'qwen2.5:0.5b',
     ollamaEnabled: false,
     selectedPersona: 'critical-editor',
+    customPersonas: [],
     longformEnabled: false,
     longformProjectPath: '',
-    outputLanguage: 'auto'
+    outputLanguage: 'auto',
+    enabledPersonas: [
+        'critical-editor', 'common-reader', 'technical-reviewer', 
+        'devils-advocate', 'booktuber', 'fandom', 'avid-reader',
+        'seo-specialist', 'copywriter', 'social-media', 'peer-reviewer',
+        'grant-reviewer', 'docs-engineer', 'screenwriter', 'sensitivity-reader',
+        'world-builder', 'childrens-editor', 'translator', 'speechwriter', 'ghostwriter'
+    ],
+    backgroundAnalysisEnabled: false, // Disabled by default for performance
+    backgroundAnalysisThreshold: 100 // Words
 };
 
 export class SmartWriteSettingTab extends PluginSettingTab {
@@ -132,6 +150,34 @@ export class SmartWriteSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
+        // --- Background Analysis ---
+        new Setting(containerEl).setName('Automatic analysis').setHeading();
+
+        new Setting(containerEl)
+            .setName('Enable background analysis')
+            .setDesc('Analyze your text automatically while you write (requires Ollama).')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.backgroundAnalysisEnabled)
+                .onChange(async (value) => {
+                    this.plugin.settings.backgroundAnalysisEnabled = value;
+                    await this.plugin.saveSettings();
+                    this.display();
+                }));
+
+        if (this.plugin.settings.backgroundAnalysisEnabled) {
+            new Setting(containerEl)
+                .setName('Analysis interval (words)')
+                .setDesc('Trigger analysis after writing this many words.')
+                .addSlider(slider => slider
+                    .setLimits(50, 500, 50)
+                    .setValue(this.plugin.settings.backgroundAnalysisThreshold)
+                    .setDynamicTooltip()
+                    .onChange(async (value) => {
+                        this.plugin.settings.backgroundAnalysisThreshold = value;
+                        await this.plugin.saveSettings();
+                    }));
+        }
+
         // Longform Integration Section
         new Setting(containerEl).setName('Longform integration').setHeading();
 
@@ -167,6 +213,116 @@ export class SmartWriteSettingTab extends PluginSettingTab {
                     });
                 });
         }
+
+        // Custom Personas Section
+        new Setting(containerEl).setName('User personas').setHeading();
+        const personasContainer = containerEl.createDiv({ cls: 'smartwrite-custom-personas-container' });
+        this.renderCustomPersonasSection(personasContainer);
+
+        // Enabled Personas Section
+        new Setting(containerEl).setName('Available personas (Sidebar)').setHeading();
+        const enabledPersonasContainer = containerEl.createDiv({ cls: 'smartwrite-enabled-personas-container' });
+        this.renderEnabledPersonasSection(enabledPersonasContainer);
+    }
+
+    renderEnabledPersonasSection(container: HTMLElement): void {
+        container.empty();
+        
+        container.createDiv({ 
+            cls: 'smartwrite-suggestion-description smartwrite-mb-12',
+            text: 'Choose which personas appear in the sidebar dropdown. Enabled personas will also be used in the "Analyze with ALL" feature.'
+        });
+
+        const personas = this.plugin.personaManager.listAllPersonas();
+        const listContainer = container.createDiv({ cls: 'smartwrite-persona-selection-list' });
+
+        personas.forEach(persona => {
+            const row = listContainer.createDiv({ cls: 'smartwrite-persona-selection-row-full' });
+            
+            const left = row.createDiv({ cls: 'smartwrite-persona-selection-left' });
+            const checkbox = left.createEl('input', { type: 'checkbox' });
+            checkbox.checked = this.plugin.settings.enabledPersonas.includes(persona.id);
+            
+            checkbox.addEventListener('change', async () => {
+                if (checkbox.checked) {
+                    if (!this.plugin.settings.enabledPersonas.includes(persona.id)) {
+                        this.plugin.settings.enabledPersonas.push(persona.id);
+                    }
+                } else {
+                    this.plugin.settings.enabledPersonas = this.plugin.settings.enabledPersonas.filter(id => id !== persona.id);
+                }
+                await this.plugin.saveSettings();
+            });
+
+            const right = row.createDiv({ cls: 'smartwrite-persona-selection-info' });
+            const titleRow = right.createDiv({ cls: 'smartwrite-persona-selection-title' });
+            titleRow.createSpan({ text: `${persona.icon} ${persona.name}`, cls: 'smartwrite-fw-bold' });
+            
+            right.createDiv({ text: persona.description, cls: 'smartwrite-persona-selection-desc' });
+        });
+    }
+
+    renderCustomPersonasSection(container: HTMLElement): void {
+        container.empty();
+
+        const addSetting = new Setting(container)
+            .setName('Create new persona')
+            .setDesc('Define a custom persona for your writing analysis.')
+            .addButton(btn => btn
+                .setButtonText('Add persona')
+                .setCta()
+                .onClick(() => {
+                    new PersonaEditorModal(this.app, null, async (persona) => {
+                        this.plugin.settings.customPersonas.push(persona);
+                        await this.plugin.saveSettings();
+                        this.plugin.personaManager.reloadPersonas();
+                        this.renderCustomPersonasSection(container);
+                    }).open();
+                }));
+
+        if (this.plugin.settings.customPersonas.length === 0) {
+            container.createDiv({ 
+                cls: 'smartwrite-suggestion-description smartwrite-mt-12-italic-o7',
+                text: 'You haven\'t created any custom personas yet.'
+            });
+            return;
+        }
+
+        const listDiv = container.createDiv({ cls: 'smartwrite-custom-personas-list' });
+
+        this.plugin.settings.customPersonas.forEach((persona, index) => {
+            const personaRow = listDiv.createDiv({ cls: 'smartwrite-model-row' });
+            
+            const info = personaRow.createDiv({ cls: 'model-info smartwrite-flex-1' });
+            info.createDiv({ cls: 'model-name smartwrite-fw-bold' }).setText(`${persona.icon} ${persona.name}`);
+            info.createDiv({ cls: 'model-meta' }).setText(persona.description);
+
+            const actions = personaRow.createDiv({ cls: 'model-actions' });
+            
+            // Edit
+            const editBtn = actions.createEl('button', { cls: 'clickable-icon' });
+            setIcon(editBtn, 'pencil');
+            editBtn.addEventListener('click', () => {
+                new PersonaEditorModal(this.app, persona, async (updatedPersona) => {
+                    this.plugin.settings.customPersonas[index] = updatedPersona;
+                    await this.plugin.saveSettings();
+                    this.plugin.personaManager.reloadPersonas();
+                    this.renderCustomPersonasSection(container);
+                }).open();
+            });
+
+            // Delete
+            const deleteBtn = actions.createEl('button', { cls: 'clickable-icon destructive' });
+            setIcon(deleteBtn, 'trash');
+            deleteBtn.addEventListener('click', () => {
+                new ConfirmationModal(this.app, `Remove persona "${persona.name}"?`, async () => {
+                    this.plugin.settings.customPersonas.splice(index, 1);
+                    await this.plugin.saveSettings();
+                    this.plugin.personaManager.reloadPersonas();
+                    this.renderCustomPersonasSection(container);
+                }).open();
+            });
+        });
     }
 
     async renderModelsSection(container: HTMLElement): Promise<void> {
@@ -219,11 +375,11 @@ export class SmartWriteSettingTab extends PluginSettingTab {
                 // Select Button (if not already selected)
                 if (!isSelected) {
                     const selectBtn = actionsDiv.createEl('button', { text: 'Select' });
-                    selectBtn.addEventListener('click', async () => {
+                    selectBtn.addEventListener('click', () => {
                         this.plugin.settings.ollamaModel = model.id;
-                        await this.plugin.saveSettings();
+                        void this.plugin.saveSettings();
                         new Notice(`Selected model: ${model.name}`);
-                        this.renderModelsSection(container); // Refresh
+                        void this.renderModelsSection(container); // Refresh
                     });
                 }
 

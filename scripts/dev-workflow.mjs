@@ -28,8 +28,9 @@ function updateVersion(filePath) {
 }
 
 function createBackup(version) {
-  const backupDir = path.join(projectRoot, "docs", "versions", version);
-  const zipFile = path.join(projectRoot, "docs", "versions", `${version}.zip`);
+  const versionWithV = version.startsWith('v') ? version : `v${version}`;
+  const backupDir = path.join(projectRoot, "docs", "versions", versionWithV);
+  const zipFile = path.join(projectRoot, "docs", "versions", `${versionWithV}.zip`);
 
   console.log(`Creating backup for version ${version}...`);
 
@@ -88,21 +89,28 @@ async function main() {
   console.log("Building project...");
   runCommand("npm run build");
 
-  // 3. Sync with Vault (Rule 3)
-  console.log('Syncing with Vault plugin folder...');
-  const vaultPluginDir = "/Users/zander/Library/CloudStorage/GoogleDrive-zander.cattapreta@zedicoes.com/Shared drives/Z•Edições/~ livros/~ Zander Catta Preta/_ rascunhos/.obsidian/plugins/smartwrite-companion";
+  // 3. Sync with Vaults (User Rule)
+  console.log('Syncing with target vaults...');
+  const targetVaults = [
+    path.join(projectRoot, ".obsidian", "plugins", "smartwrite-companion"),
+    "/Users/zander/Library/CloudStorage/GoogleDrive-zander.cattapreta@zedicoes.com/Shared drives/Z•Edições/~ livros/~ Zander Catta Preta/_ rascunhos/.obsidian/plugins/smartwrite-companion",
+    "/Users/zander/Library/CloudStorage/GoogleDrive-zander.cattapreta@zedicoes.com/My Drive/_ programação/_ smartwriter-analyzer/.obsidian/plugins/smartwrite-companion"
+  ];
 
-  // Ensure directory exists (it should, but safety first)
-  if (!fs.existsSync(vaultPluginDir)) {
-    fs.mkdirSync(vaultPluginDir, { recursive: true });
+  for (const vaultDir of targetVaults) {
+    console.log(`Updating vault: ${vaultDir}`);
+    // Ensure directory exists
+    if (!fs.existsSync(vaultDir)) {
+      fs.mkdirSync(vaultDir, { recursive: true });
+    }
+
+    // Copy artifacts
+    runCommand(`cp "${path.join(projectRoot, 'main.js')}" "${vaultDir}/"`);
+    runCommand(`cp "${path.join(projectRoot, 'manifest.json')}" "${vaultDir}/"`);
+    runCommand(`cp "${path.join(projectRoot, 'styles.css')}" "${vaultDir}/"`);
   }
 
-  // Copy artifacts
-  runCommand(`cp "${path.join(projectRoot, 'main.js')}" "${vaultPluginDir}/"`);
-  runCommand(`cp "${path.join(projectRoot, 'manifest.json')}" "${vaultPluginDir}/"`);
-  runCommand(`cp "${path.join(projectRoot, 'styles.css')}" "${vaultPluginDir}/"`);
-
-  console.log('Vault updated.');
+  console.log('All vaults updated.');
 
   // 4. Create Backup
   createBackup(newVersion);

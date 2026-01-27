@@ -129,14 +129,17 @@ export class OllamaService {
      */
     async pullModel(
         modelName: string,
-        _onProgress?: (progress: { status: string; percent?: number; total?: number; completed?: number }) => void
+        _onProgress?: (progress: { status: string; percent?: number; total?: number; completed?: number }) => void,
+        signal?: AbortSignal
     ): Promise<boolean> {
         try {
             const response = await requestUrl({
                 url: `${this.endpoint}/api/pull`,
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: modelName, stream: false })
+                body: JSON.stringify({ name: modelName, stream: false }),
+                // @ts-ignore - signal is supported in Obsidian 1.4+ but might not be in types
+                signal: signal
             });
 
             if (response.status !== 200) {
@@ -173,7 +176,7 @@ export class OllamaService {
      * Generates a completion using the selected model.
      * This is a base implementation for future features.
      */
-    async generateCompletion(prompt: string, options: Record<string, unknown> = {}): Promise<string> {
+    async generateCompletion(prompt: string, options: Record<string, unknown> = {}, signal?: AbortSignal): Promise<string> {
         if (!this.plugin.settings.ollamaEnabled) {
             throw new Error('Ollama is disabled in settings.');
         }
@@ -190,7 +193,9 @@ export class OllamaService {
                 }),
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                // @ts-ignore
+                signal: signal
             });
 
             if (response.status === 200) {

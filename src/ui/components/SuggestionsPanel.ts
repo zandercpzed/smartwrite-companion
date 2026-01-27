@@ -1,5 +1,5 @@
 import { BasePanel } from './BasePanel';
-import { SuggestionsResult } from '../../types';
+import { SuggestionsResult, Suggestion, RepetitionDetail } from '../../types';
 import SmartWriteCompanionPlugin from "../../main";
 import { MarkdownView } from 'obsidian';
 
@@ -27,7 +27,7 @@ export class SuggestionsPanel extends BasePanel {
             type: string,
             severity: string,
             count: number,
-            instances: Suggestion[] | RepetitionDetail[]
+            instances: (Suggestion | RepetitionDetail)[]
         }>();
 
         for (const s of this.suggestions.suggestions) {
@@ -36,8 +36,8 @@ export class SuggestionsPanel extends BasePanel {
                 aggregated.set('repetition', {
                     type: 'repetition',
                     severity: s.severity,
-                    count: s.details.length,
-                    instances: s.details
+                    count: s.details?.length || 0,
+                    instances: (s.details as RepetitionDetail[]) || []
                 });
                 continue;
             }
@@ -104,24 +104,26 @@ export class SuggestionsPanel extends BasePanel {
                     const detailItem = detailsContainer.createDiv({ cls: 'smartwrite-detail-item' });
                     
                     if (group.type === 'repetition') {
+                        const rep = instance as RepetitionDetail;
                         detailItem.addClass('smartwrite-repetition-item');
-                        detailItem.createSpan({ cls: 'smartwrite-detail-text' }).setText(instance.word);
-                        detailItem.createSpan({ cls: 'smartwrite-detail-sub' }).setText(String(instance.count));
+                        detailItem.createSpan({ cls: 'smartwrite-detail-text' }).setText(rep.word);
+                        detailItem.createSpan({ cls: 'smartwrite-detail-sub' }).setText(String(rep.count));
                     } 
                     else {
+                        const sug = instance as Suggestion;
                         detailItem.addClass('smartwrite-simple-item');
-                        detailItem.createSpan({ cls: 'smartwrite-detail-text' }).setText(instance.message || group.type);
+                        detailItem.createSpan({ cls: 'smartwrite-detail-text' }).setText(sug.message || group.type);
                         
                         // Add click to focus in editor
                         detailItem.addClass('smartwrite-pointer');
                         detailItem.addEventListener('click', (e) => {
                             e.stopPropagation();
-                            if (instance.position && instance.position.start !== undefined) {
+                            if (sug.position && sug.position.start !== undefined) {
                                 const activeView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
                                 if (activeView) {
                                     activeView.editor.setSelection(
-                                        activeView.editor.offsetToPos(instance.position.start),
-                                        activeView.editor.offsetToPos(instance.position.end)
+                                        activeView.editor.offsetToPos(sug.position.start),
+                                        activeView.editor.offsetToPos(sug.position.end)
                                     );
                                     activeView.editor.focus();
                                 }

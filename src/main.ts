@@ -13,6 +13,7 @@ import { OllamaService } from './services/OllamaService';
 import { PersonaManager } from './services/PersonaManager';
 import { LongformService } from './services/LongformService';
 import { TranslationService } from './services/TranslationService';
+import { TextStats, SuggestionsResult, ReadabilityScores } from './types'; // Added for updateUI types
 
 export default class SmartWriteCompanionPlugin extends Plugin {
     settings: SmartWriteSettings;
@@ -25,6 +26,8 @@ export default class SmartWriteCompanionPlugin extends Plugin {
     personaManager: PersonaManager;
     longformService: LongformService;
     translationService: TranslationService;
+    private wordsSinceLastBackgroundAnalysis: number = 0;
+    private lastBackgroundResult: string | null = null;
 
     async onload() {
         await this.loadSettings();
@@ -209,9 +212,46 @@ export default class SmartWriteCompanionPlugin extends Plugin {
 
             // Update sidebar if open
             this.updateSidebar(stats, suggestions, readability);
+            
+            // Background Analysis Trigger
+            this.handleBackgroundAnalysisTrigger(text);
         } catch (error) {
             console.error('Error analyzing text:', error);
         }
+    }
+
+    private handleBackgroundAnalysisTrigger(content: string): void {
+        if (!this.settings.backgroundAnalysisEnabled || !this.settings.ollamaEnabled) return;
+
+        // Simplified threshold logic: count events since last analysis
+        this.wordsSinceLastBackgroundAnalysis++;
+        
+        if (this.wordsSinceLastBackgroundAnalysis >= this.settings.backgroundAnalysisThreshold) {
+            this.wordsSinceLastBackgroundAnalysis = 0;
+            void this.runBackgroundAnalysis(content);
+        }
+    }
+
+    private async runBackgroundAnalysis(content: string): Promise<void> {
+        const result = await this.personaManager.backgroundAnalyze(
+            this.settings.selectedPersona,
+            content,
+            this.settings.outputLanguage
+        );
+        
+        if (result) {
+            this.lastBackgroundResult = result;
+            // Notify Sidebar if open
+            this.app.workspace.getLeavesOfType('smartwrite-sidebar').forEach((leaf) => {
+                if (leaf.view instanceof SidebarView) {
+                    leaf.view.updateBackgroundAnalysis(result);
+                }
+            });
+        }
+    }
+
+    public getLastBackgroundResult(): string | null {
+        return this.lastBackgroundResult;
     }
 
     private updateSidebar(stats: import('./types').TextStats, suggestions: import('./types').SuggestionsResult, readability: import('./types').ReadabilityScores): void {

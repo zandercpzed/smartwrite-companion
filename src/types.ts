@@ -55,7 +55,6 @@ export interface RepetitionDetail {
     word: string;
     count: number;
 }
-}
 
 export interface SuggestionsResult {
     suggestions: Suggestion[];

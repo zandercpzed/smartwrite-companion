@@ -1,5 +1,22 @@
 # SmartWrite Companion Changelog
 
+## [0.8.5] - 2026-01-26
+
+### Added
+
+- **Customizable Personas**: Create, edit, and delete your own analysis personas in settings.
+- **Library Expansion**: Added 13 new built-in personas (SEO, Copywriter, Script Doctor, etc.).
+- **Response Language**: Option to force AI responses in specific languages (PT-BR, EN-US, etc.).
+
+### Fixed
+
+- **Submission Issues**: Fixed several violations reported by Obsidian Review Bot (Async/Await, setIcon imports, UI case).
+- **Type Safety**: Refactored suggestion details to use strict union types.
+
+### Refactored
+
+- **Persona Library**: Moved all built-in persona definitions to a separate module `src/personas/library.ts`.
+
 ## [0.8.2] - 2026-01-17
 
 ### 📊 Enhanced Readability Analysis

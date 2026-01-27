@@ -2,6 +2,11 @@ import { BasePanel } from './BasePanel';
 import { MarkdownView, Notice } from 'obsidian';
 
 import SmartWriteCompanionPlugin from '../../main';
+import { PersonaAnalysisResult, Persona } from '../../types';
+import { HelpModal } from '../modals/HelpModal';
+import { QueueAnalysisModal } from '../modals/QueueAnalysisModal';
+import { FolderSelectionModal } from '../modals/FolderSelectionModal';
+import { setIcon, TFolder } from 'obsidian';
 
 export class PersonaPanel extends BasePanel {
     private plugin: SmartWriteCompanionPlugin;
@@ -9,6 +14,42 @@ export class PersonaPanel extends BasePanel {
     constructor(containerEl: HTMLElement, plugin: SmartWriteCompanionPlugin) {
         super(containerEl, 'Persona analysis');
         this.plugin = plugin;
+        
+        // Add help icon next to panel title (header)
+        const header = containerEl.querySelector('.smartwrite-panel-header');
+        if (header) {
+            this.addHelpIconToHeader(header as HTMLElement);
+        }
+    }
+
+    private addHelpIconToHeader(header: HTMLElement): void {
+        const helpIcon = header.createSpan({ cls: 'smartwrite-help-icon-inline' });
+        setIcon(helpIcon, 'help-circle');
+        helpIcon.addEventListener('click', (e) => {
+            e.stopPropagation(); // Don't collapse panel
+            this.showMainHelp();
+        });
+    }
+
+    private addHelpIconToLabel(labelContainer: HTMLElement, onClick: () => void): void {
+        const helpIcon = labelContainer.createSpan({ cls: 'smartwrite-help-icon-small' });
+        setIcon(helpIcon, 'help-circle');
+        helpIcon.addEventListener('click', (e) => {
+            e.preventDefault();
+            onClick();
+        });
+    }
+
+    private showMainHelp(): void {
+        const content = document.createElement('div');
+        content.createEl('p', { text: 'In this section, you can configure how the AI analyzes your text:' });
+        const list = content.createEl('ul');
+        list.createEl('li', { text: 'Mode: Choose between critical analysis (Personas) or Translation.' });
+        list.createEl('li', { text: 'Analysis Target: Analyze the current file or a complete Longform project.' });
+        list.createEl('li', { text: 'Select Persona: Choose the "personality" of the reviewer.' });
+        list.createEl('li', { text: 'Response Language: The language the AI will use for its feedback.' });
+        
+        new HelpModal(this.plugin.app, 'Persona Analysis - Help', content).open();
     }
 
     protected renderContent(): void {
@@ -40,7 +81,10 @@ export class PersonaPanel extends BasePanel {
     private renderAnalysisInterface(container: HTMLElement): void {
         // Mode Selector (Analyze vs Translate)
         const modeContainer = container.createDiv({ cls: 'smartwrite-control-group smartwrite-mb-15' });
-        modeContainer.createEl('label', { text: 'Mode' });
+        const modeLabel = modeContainer.createEl('label', { text: 'Mode ' });
+        this.addHelpIconToLabel(modeLabel, () => {
+            new HelpModal(this.plugin.app, 'Mode', 'Choose "Analyze" to receive critical feedback from specific personas, or "Translate" to convert your text to another language while preserving its original meaning.').open();
+        });
         
         const modeSelect = modeContainer.createEl('select', { cls: 'dropdown smartwrite-w100' });
         modeSelect.createEl('option', { value: 'analyze', text: '🧐 Analyze (personas)' });
@@ -48,7 +92,11 @@ export class PersonaPanel extends BasePanel {
 
         // 1. Target Selector (Current File vs Configured Longform Project)
         const targetSection = container.createDiv({ cls: 'smartwrite-stat-item smartwrite-mb-12' });
-        targetSection.createDiv({ cls: 'smartwrite-stat-label' }).setText('Analysis target');
+        const targetLabel = targetSection.createDiv({ cls: 'smartwrite-stat-label' });
+        targetLabel.createSpan({ text: 'Analysis target ' });
+        this.addHelpIconToLabel(targetLabel, () => {
+            new HelpModal(this.plugin.app, 'Analysis Target', 'Defines which text is sent for analysis. "Current file" analyzes the open document (or selection). If the "Longform" plugin is active and configured, you can analyze the entire project at once.').open();
+        });
         
         const targetSelect = targetSection.createEl('select', { cls: 'dropdown smartwrite-w100' });
         
@@ -71,11 +119,29 @@ export class PersonaPanel extends BasePanel {
 
         // 2. Persona Selector
         const selectorSection = container.createDiv({ cls: 'smartwrite-stat-item smartwrite-mb-16' });
-        selectorSection.createDiv({ cls: 'smartwrite-stat-label' }).setText('Select persona');
+        const personaLabel = selectorSection.createDiv({ cls: 'smartwrite-stat-label' });
+        personaLabel.createSpan({ text: 'Select persona ' });
+        this.addHelpIconToLabel(personaLabel, () => {
+            const content = document.createElement('div');
+            content.createEl('p', { text: 'Select the desired analysis profile. Each persona focuses on different aspects of your writing:', cls: 'smartwrite-mb-12' });
+            
+            const table = content.createEl('table', { cls: 'smartwrite-persona-help-table' });
+            this.plugin.personaManager.listPersonas().forEach(p => {
+                const row = table.createEl('tr');
+                row.createEl('td', { text: `${p.icon} ${p.name}`, cls: 'smartwrite-fw-bold' });
+                row.createEl('td', { text: p.description });
+            });
+            
+            new HelpModal(this.plugin.app, 'Available Personas', content).open();
+        });
 
         const personas = this.plugin.personaManager.listPersonas();
         const select = selectorSection.createEl('select', { cls: 'dropdown' });
         
+        // Add "All" option
+        const allOption = select.createEl('option', { value: 'all-enabled', text: '🚀 Analyze with ALL enabled personas' });
+        if (this.plugin.settings.selectedPersona === 'all-enabled') allOption.selected = true;
+
         personas.forEach(persona => {
             const option = select.createEl('option', { value: persona.id });
             option.setText(`${persona.icon} ${persona.name}`);
@@ -101,7 +167,10 @@ export class PersonaPanel extends BasePanel {
 
         // Output Language Dropdown
         const langContainer = container.createEl('div', { cls: 'smartwrite-control-group' });
-        langContainer.createEl('label', { text: 'Response language' });
+        const langLabel = langContainer.createEl('label', { text: 'Response language ' });
+        this.addHelpIconToLabel(langLabel, () => {
+            new HelpModal(this.plugin.app, 'Response Language', 'Defines the language the AI should use for its feedback. "Auto" will attempt to detect the language of your original text.').open();
+        });
         
         const langSelect = langContainer.createEl('select', { cls: 'smartwrite-w100 smartwrite-mb-15' });
 
@@ -129,9 +198,25 @@ export class PersonaPanel extends BasePanel {
         });
 
         // Analyze/Translate button
-        const actionButton = container.createEl('button', {
+        const actionButtonContainer = container.createDiv({ cls: 'smartwrite-analyze-btn-container' });
+        const actionButton = actionButtonContainer.createEl('button', {
             text: modeSelect.value === 'translate' ? 'Translate text' : 'Analyze text',
-            cls: 'mod-cta smartwrite-w100 smartwrite-mb-16'
+            cls: 'smartwrite-analyze-btn mod-cta smartwrite-w100'
+        });
+        
+        // Progress Meter
+        const progressMeter = actionButton.createDiv({ cls: 'smartwrite-progress-meter' });
+
+        // Stop button (hidden by default)
+        const stopButton = actionButtonContainer.createEl('button', {
+            text: 'Stop Analysis',
+            cls: 'smartwrite-stop-btn is-hidden'
+        });
+
+        stopButton.addEventListener('click', () => {
+            this.plugin.personaManager.cancelAnalysis();
+            new Notice('Analysis stopped.');
+            this.resetAnalysisUI(actionButton, stopButton, progressMeter);
         });
 
         // Mode Change Handler
@@ -162,6 +247,61 @@ export class PersonaPanel extends BasePanel {
             cls: 'smartwrite-persona-results',
             attr: { id: 'persona-results' }
         });
+
+        // Background Feedback area
+        const bgArea = container.createDiv({ 
+            cls: 'smartwrite-background-feedback is-hidden',
+            attr: { id: 'background-feedback' }
+        });
+        
+        const lastResult = this.plugin.getLastBackgroundResult();
+        if (lastResult) {
+            this.showBackgroundAnalysis(lastResult);
+        }
+    }
+
+    public showBackgroundAnalysis(result: string): void {
+        const bgContainer = this.contentEl.querySelector('#background-feedback') as HTMLElement;
+        if (!bgContainer) return;
+
+        bgContainer.empty();
+        bgContainer.removeClass('is-hidden');
+        
+        bgContainer.createDiv({ cls: 'smartwrite-section-heading', text: '💡 Live Feedback' });
+        
+        const content = bgContainer.createDiv({ cls: 'smartwrite-suggestion-description smartwrite-mb-12' });
+        content.setText(result);
+        
+        const syncBtn = bgContainer.createEl('button', {
+            text: 'Save as note',
+            cls: 'smartwrite-w100 mod-cta'
+        });
+        
+        syncBtn.addEventListener('click', () => {
+            void this.saveBackgroundAnalysisAsFile(result);
+        });
+    }
+
+    private async saveBackgroundAnalysisAsFile(analysis: string): Promise<void> {
+        const persona = this.plugin.personaManager.getPersona(this.plugin.settings.selectedPersona);
+        const name = persona ? persona.name : 'Assistant';
+        
+        const timestamp = new Date().toLocaleString();
+        const fileContent = `# Live Feedback: ${name}\n\n` +
+            `**Date:** ${timestamp}\n\n` +
+            `## AI feedback\n\n${analysis}`;
+
+        const now = new Date();
+        const timeString = `${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+        const filename = `Live Feedback - ${name} - ${timeString}.md`;
+        
+        try {
+            const newFile = await this.plugin.app.vault.create(filename, fileContent);
+            await this.plugin.app.workspace.getLeaf('tab').openFile(newFile);
+            new Notice(`Feedback saved to: ${filename}`);
+        } catch (e) {
+            new Notice('Failed to save file.');
+        }
     }
 
     private renderSetupGuide(container: HTMLElement): void {
@@ -285,67 +425,155 @@ export class PersonaPanel extends BasePanel {
         const { text, title } = await this.getTargetContent(targetValue);
         if (!text) return;
 
-        // Update UI state - Start Animation
         button.setText('Analyzing...');
         button.addClass('smartwrite-btn-processing');
         button.disabled = true;
 
-        try {
-            // execute analysis
-            const result = await this.plugin.personaManager.analyzeText(
-                this.plugin.settings.selectedPersona,
-                text,
-                this.plugin.settings.outputLanguage
-            );
+        const progressMeter = button.querySelector('.smartwrite-progress-meter') as HTMLElement;
+        const stopButton = button.parentElement?.querySelector('.smartwrite-stop-btn') as HTMLButtonElement;
+        
+        if (progressMeter) progressMeter.style.height = '0%';
+        if (stopButton) stopButton.removeClass('is-hidden');
 
-            if (result.error) {
-                // Show error
-                const resultsContainer = container.querySelector('#persona-results') as HTMLElement;
-                if (resultsContainer) {
-                    resultsContainer.empty();
-                    const errorDiv = resultsContainer.createDiv({ 
-                        cls: 'smartwrite-suggestion-description smartwrite-error-box'
-                    });
-                    errorDiv.setText(`Error: ${result.error}`);
-                }
-                new Notice('Analysis failed.');
-            } else {
-                // Success - Create new file
-                const resultsContainer = container.querySelector('#persona-results') as HTMLElement;
-                if (resultsContainer) {
-                    resultsContainer.empty();
-                    const successDiv = resultsContainer.createDiv({ 
-                        cls: 'smartwrite-suggestion-description smartwrite-success-box'
-                    });
-                    successDiv.setText('✅ Analysis document created!');
-                }
-
-                // Format content - NO ORIGINAL TEXT as requested
-                const timestamp = new Date().toLocaleString();
-                const fileContent = `# Analysis: ${title}\n\n` +
-                    `**Persona:** ${result.personaName} ${result.personaId === 'fandom' ? '💫' : '📝'}\n` +
-                    `**Date:** ${timestamp}\n\n` +
-                    `## AI feedback\n\n${result.analysis}`;
-
-                // Create filename
-                const now = new Date();
-                const timeString = `${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
-                const filename = `Analysis - ${result.personaName} - ${timeString}.md`;
-                
-                // Create and open file
-                const newFile = await this.plugin.app.vault.create(filename, fileContent);
-                await this.plugin.app.workspace.getLeaf('tab').openFile(newFile);
-                
-                new Notice(`Analysis saved to: ${filename}`);
+        // 1. Ask for Folder FIRST
+        new FolderSelectionModal(this.plugin.app, 
+            async (selectedFolder: TFolder) => {
+                await this.executeAnalysisWorkflow(container, button, stopButton, text, title, selectedFolder, progressMeter);
+            },
+            () => {
+                // CANCELLED - Reset UI
+                this.resetAnalysisUI(button, stopButton, progressMeter);
             }
+        ).open();
+    }
+
+    private resetAnalysisUI(button: HTMLButtonElement, stopButton: HTMLButtonElement | null, progressMeter: HTMLElement | null) {
+        button.setText('Analyze text');
+        button.removeClass('smartwrite-btn-processing');
+        button.disabled = false;
+        if (stopButton) stopButton.addClass('is-hidden');
+        if (progressMeter) progressMeter.style.height = '0%';
+    }
+
+    private async executeAnalysisWorkflow(
+        container: HTMLElement, 
+        button: HTMLButtonElement, 
+        stopButton: HTMLButtonElement | null,
+        text: string, 
+        title: string, 
+        destFolder: TFolder,
+        progressMeter: HTMLElement | null
+    ): Promise<void> {
+        const selectedId = this.plugin.settings.selectedPersona;
+        
+        try {
+            const run = async (forceQueue: boolean = false) => {
+                let results: PersonaAnalysisResult[] = [];
+                
+                if (selectedId === 'all-enabled') {
+                    const enabledPersonas = this.plugin.personaManager.listPersonas();
+                    for (let i = 0; i < enabledPersonas.length; i++) {
+                        const p = enabledPersonas[i];
+                        button.setText(`Analyzing (${i + 1}/${enabledPersonas.length}): ${p.name}...`);
+                        if (progressMeter) progressMeter.style.height = `${(i / enabledPersonas.length) * 100}%`;
+
+                        const res = await this.plugin.personaManager.analyzeText(
+                            p.id, text, this.plugin.settings.outputLanguage, undefined, forceQueue
+                        );
+                        // If it returns a busy object or error "cancelled"
+                        if ('isBusy' in res) continue; 
+                        if (res.error === 'Analysis cancelled by user') {
+                            this.resetAnalysisUI(button, stopButton, progressMeter);
+                            return;
+                        }
+                        results.push(res);
+                    }
+                    if (progressMeter) progressMeter.style.height = '100%';
+                } else {
+                    const res = await this.plugin.personaManager.analyzeText(
+                        selectedId, text, this.plugin.settings.outputLanguage, 
+                        (s, p) => { if (progressMeter) progressMeter.style.height = `${p}%`; },
+                        forceQueue
+                    );
+                    
+                    if ('isBusy' in res) {
+                        new QueueAnalysisModal(this.plugin.app, res.personaName, () => {
+                            void run(true); // Retry with forceQueue
+                        }).open();
+                        // Reset but only if not truly queued? Actually button says "Analysis Queued"
+                        return;
+                    }
+
+                    if (res.error === 'Analysis cancelled by user') {
+                        this.resetAnalysisUI(button, stopButton, progressMeter);
+                        return;
+                    }
+                    results.push(res as PersonaAnalysisResult);
+                }
+
+                await this.finalizeAnalysisResults(container, results, title, destFolder);
+                this.resetAnalysisUI(button, stopButton, progressMeter);
+            };
+
+            await run(false);
+
         } catch (error) {
-            console.error('Analysis failed:', error);
-            new Notice('An error occurred during analysis.');
-        } finally {
-            // Reset UI state - Stop Animation in all cases
+            console.error('Analysis workflow failed:', error);
             button.setText('Analyze text');
             button.removeClass('smartwrite-btn-processing');
             button.disabled = false;
+        }
+    }
+
+    private async finalizeAnalysisResults(
+        container: HTMLElement, 
+        results: PersonaAnalysisResult[], 
+        title: string, 
+        destFolder: TFolder
+    ): Promise<void> {
+        const anyError = results.find(r => r.error);
+        const resultsContainer = container.querySelector('#persona-results') as HTMLElement;
+
+        if (anyError && results.length === 1) {
+            if (resultsContainer) {
+                resultsContainer.empty();
+                resultsContainer.createDiv({ cls: 'smartwrite-suggestion-description smartwrite-error-box' }).setText(`Error: ${anyError.error}`);
+            }
+            new Notice('Analysis failed.');
+            return;
+        }
+
+        if (resultsContainer) {
+            resultsContainer.empty();
+            resultsContainer.createDiv({ cls: 'smartwrite-suggestion-description smartwrite-success-box' })
+                .setText(`✅ ${results.length > 1 ? 'Full analysis' : 'Analysis'} document created!`);
+        }
+
+        const timestamp = new Date().toLocaleString();
+        let fileContent = `# Analysis: ${title}\n\n**Date:** ${timestamp}\n\n`;
+
+        if (results.length > 1) {
+            fileContent += `**Multi-Persona Analysis (${results.length} personas)**\n\n---\n\n`;
+            results.forEach(res => {
+                fileContent += `## ${res.personaName} feedback\n\n${res.analysis || res.error || 'No feedback generated.'}\n\n---\n\n`;
+            });
+        } else {
+            const result = results[0];
+            fileContent += `**Persona:** ${result.personaName}\n\n## AI feedback\n\n${result.analysis}`;
+        }
+
+        const now = new Date();
+        const timeString = `${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+        const baseName = results.length > 1 ? 'Full analysis' : `Analysis - ${results[0].personaName}`;
+        const filename = `${baseName} - ${timeString}.md`;
+        const fullPath = destFolder.path === '/' ? filename : `${destFolder.path}/${filename}`;
+        
+        try {
+            const newFile = await this.plugin.app.vault.create(fullPath, fileContent);
+            await this.plugin.app.workspace.getLeaf('tab').openFile(newFile);
+            new Notice(`Analysis saved to: ${fullPath}`);
+        } catch (e) {
+            new Notice('Failed to create analysis file.');
         }
     }
 
@@ -363,6 +591,9 @@ export class PersonaPanel extends BasePanel {
         button.disabled = true;
         button.addClass('smartwrite-btn-processing');
 
+        const progressMeter = button.querySelector('.smartwrite-progress-meter') as HTMLElement;
+        if (progressMeter) progressMeter.style.height = '0%';
+
         try {
             const result = await this.plugin.translationService.translateProject(
                 text, 
@@ -370,6 +601,7 @@ export class PersonaPanel extends BasePanel {
                 targetLang, 
                 (status, percent) => {
                     button.setText(`${status} (${percent}%)`);
+                    if (progressMeter) progressMeter.style.height = `${percent}%`;
                 }
             );
 

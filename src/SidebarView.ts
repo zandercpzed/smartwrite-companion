@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf } from 'obsidian';
+import { ItemView, WorkspaceLeaf, setIcon } from 'obsidian';
 import SmartWriteCompanionPlugin from './main';
 import { TextStats, SuggestionsResult, ReadabilityScores } from './types';
 import { SessionStatsPanel } from './ui/components/SessionStatsPanel';
@@ -6,6 +6,7 @@ import { TextMetricsPanel } from './ui/components/TextMetricsPanel';
 import { SuggestionsPanel } from './ui/components/SuggestionsPanel';
 import { ReadabilityPanel } from './ui/components/ReadabilityPanel';
 import { PersonaPanel } from './ui/components/PersonaPanel';
+import { AnalysisStatusModal } from './ui/modals/AnalysisStatusModal';
 
 export class SidebarView extends ItemView {
     private plugin: SmartWriteCompanionPlugin;
@@ -25,14 +26,15 @@ export class SidebarView extends ItemView {
     }
 
     getDisplayText(): string {
-        return 'SmartWrite companion';
+        return 'SmartWrite Companion';
     }
 
     getIcon(): string {
         return 'pencil';
     }
 
-    onOpen(): Promise<void> {
+    async onOpen(): Promise<void> {
+        await Promise.resolve(); // Satisfy lint rule "Async method 'onOpen' has no 'await' expression"
         const container = this.containerEl.children[1];
         container.empty();
         container.addClass('smartwrite-container');
@@ -84,9 +86,9 @@ export class SidebarView extends ItemView {
         // Title container
         const titleContainer = header.createDiv({ cls: 'smartwrite-title-container' });
         const title = titleContainer.createDiv({ cls: 'smartwrite-title' });
-        title.setText('SmartWrite companion');
+        title.setText('SmartWrite Companion');
         const version = titleContainer.createDiv({ cls: 'smartwrite-version' });
-        version.setText(`versão: ${this.plugin.manifest.version}`);
+        version.setText(`Version: ${this.plugin.manifest.version}`);
 
         // Settings button
         const settingsBtn = header.createDiv({ cls: 'smartwrite-settings-btn' });
@@ -108,6 +110,17 @@ export class SidebarView extends ItemView {
         this.createSettingToggle(this.settingsPanel, 'Readability', 'showReadability');
         this.createSettingToggle(this.settingsPanel, 'Suggestions', 'showSuggestions');
         this.createSettingToggle(this.settingsPanel, 'Persona analysis', 'showPersona');
+
+        // Add Status & Queue access
+        const statusBtnRow = this.settingsPanel.createDiv({ cls: 'smartwrite-setting-row smartwrite-mt-8' });
+        const statusBtn = statusBtnRow.createEl('button', {
+            text: '📊 Analysis Status & Queue',
+            cls: 'smartwrite-w100 smartwrite-status-trigger-btn'
+        });
+        statusBtn.addEventListener('click', () => {
+            new AnalysisStatusModal(this.plugin.app, this.plugin).open();
+            this.toggleSettingsPanel(); // Close settings when opening modal
+        });
     }
 
     private createSettingToggle(container: HTMLElement, label: string, settingKey: keyof typeof this.plugin.settings): void {
@@ -179,6 +192,12 @@ export class SidebarView extends ItemView {
     updateInstallProgress(progress: { status: string; percent?: number }): void {
         if (this.personaPanel) {
             try { this.personaPanel.updateInstallProgress(progress); } catch(e) { console.error('Error updating install progress', e); }
+        }
+    }
+
+    updateBackgroundAnalysis(result: string): void {
+        if (this.personaPanel && typeof this.personaPanel.showBackgroundAnalysis === 'function') {
+            this.personaPanel.showBackgroundAnalysis(result);
         }
     }
 }

@@ -2578,10 +2578,50 @@ __export(main_exports, {
   default: () => SmartWriteCompanionPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian8 = require("obsidian");
+var import_obsidian14 = require("obsidian");
 
 // src/settings.ts
+var import_obsidian2 = require("obsidian");
+
+// src/ui/modals/PersonaEditorModal.ts
 var import_obsidian = require("obsidian");
+var PersonaEditorModal = class extends import_obsidian.Modal {
+  constructor(app, persona, onSubmit) {
+    super(app);
+    this.onSubmit = onSubmit;
+    this.isNew = !persona;
+    this.persona = persona || {
+      id: `custom-${Date.now()}`,
+      name: "",
+      description: "",
+      systemPrompt: "",
+      icon: "\u{1F464}"
+    };
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h2", { text: this.isNew ? "Create new persona" : "Edit persona" });
+    new import_obsidian.Setting(contentEl).setName("Name").setDesc("A friendly name for this persona").addText((text) => text.setPlaceholder("e.g. Pirate Editor").setValue(this.persona.name).onChange((value) => this.persona.name = value));
+    new import_obsidian.Setting(contentEl).setName("Icon").setDesc("Emoji or single character icon").addText((text) => text.setPlaceholder("\u{1F3F4}\u200D\u2620\uFE0F").setValue(this.persona.icon).onChange((value) => this.persona.icon = value));
+    new import_obsidian.Setting(contentEl).setName("Description").setDesc("Briefly explains what this persona does").addText((text) => text.setPlaceholder("Analyzes text as if it were a pirate...").setValue(this.persona.description).onChange((value) => this.persona.description = value));
+    new import_obsidian.Setting(contentEl).setName("System prompt").setDesc("The core instructions for the AI behavior").addTextArea((text) => text.setPlaceholder("You are a professional editor but you speak exclusively in pirate slang...").setValue(this.persona.systemPrompt).onChange((value) => this.persona.systemPrompt = value).inputEl.rows = 6);
+    new import_obsidian.Setting(contentEl).addButton((btn) => btn.setButtonText("Save").setCta().onClick(() => {
+      if (!this.persona.name || !this.persona.systemPrompt) {
+        new import_obsidian.Notice("Name and system prompt are required.");
+        return;
+      }
+      this.onSubmit(this.persona);
+      this.close();
+    })).addButton((btn) => btn.setButtonText("Cancel").onClick(() => this.close()));
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+};
+
+// src/settings.ts
 var DEFAULT_SETTINGS = {
   dailyGoal: 1e3,
   readingSpeed: 200,
@@ -2596,11 +2636,38 @@ var DEFAULT_SETTINGS = {
   ollamaModel: "qwen2.5:0.5b",
   ollamaEnabled: false,
   selectedPersona: "critical-editor",
+  customPersonas: [],
   longformEnabled: false,
   longformProjectPath: "",
-  outputLanguage: "auto"
+  outputLanguage: "auto",
+  enabledPersonas: [
+    "critical-editor",
+    "common-reader",
+    "technical-reviewer",
+    "devils-advocate",
+    "booktuber",
+    "fandom",
+    "avid-reader",
+    "seo-specialist",
+    "copywriter",
+    "social-media",
+    "peer-reviewer",
+    "grant-reviewer",
+    "docs-engineer",
+    "screenwriter",
+    "sensitivity-reader",
+    "world-builder",
+    "childrens-editor",
+    "translator",
+    "speechwriter",
+    "ghostwriter"
+  ],
+  backgroundAnalysisEnabled: false,
+  // Disabled by default for performance
+  backgroundAnalysisThreshold: 100
+  // Words
 };
-var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
+var SmartWriteSettingTab = class extends import_obsidian2.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.plugin = plugin;
@@ -2608,49 +2675,60 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian.Setting(containerEl).setName("General").setHeading();
-    new import_obsidian.Setting(containerEl).setName("Daily word goal").setDesc("Set your daily writing goal in words").addText((text) => text.setPlaceholder("1000").setValue(this.plugin.settings.dailyGoal.toString()).onChange(async (value) => {
+    new import_obsidian2.Setting(containerEl).setName("Daily word goal").setDesc("Set your daily writing goal in words.").addText((text) => text.setPlaceholder("1000").setValue(this.plugin.settings.dailyGoal.toString()).onChange(async (value) => {
       const numValue = parseInt(value);
       if (!isNaN(numValue) && numValue > 0) {
         this.plugin.settings.dailyGoal = numValue;
         await this.plugin.saveSettings();
       }
     }));
-    new import_obsidian.Setting(containerEl).setName("Reading speed").setDesc("Words per minute for reading time calculations").addText((text) => text.setPlaceholder("200").setValue(this.plugin.settings.readingSpeed.toString()).onChange(async (value) => {
+    new import_obsidian2.Setting(containerEl).setName("Reading speed").setDesc("Words per minute for reading time calculations.").addText((text) => text.setPlaceholder("200").setValue(this.plugin.settings.readingSpeed.toString()).onChange(async (value) => {
       const numValue = parseInt(value);
       if (!isNaN(numValue) && numValue > 0) {
         this.plugin.settings.readingSpeed = numValue;
         await this.plugin.saveSettings();
       }
     }));
-    new import_obsidian.Setting(containerEl).setName("LLM integration").setHeading();
-    new import_obsidian.Setting(containerEl).setName("Enable LLM").setDesc("Enable local LLM integration for personas and smart suggestions").addToggle((toggle) => toggle.setValue(this.plugin.settings.ollamaEnabled).onChange(async (value) => {
+    new import_obsidian2.Setting(containerEl).setName("LLM integration").setHeading();
+    new import_obsidian2.Setting(containerEl).setName("Enable LLM integration").setDesc("Enable local LLM integration for personas and smart suggestions.").addToggle((toggle) => toggle.setValue(this.plugin.settings.ollamaEnabled).onChange(async (value) => {
       this.plugin.settings.ollamaEnabled = value;
       await this.plugin.saveSettings();
       this.display();
     }));
     if (this.plugin.settings.ollamaEnabled) {
-      new import_obsidian.Setting(containerEl).setName("LLM endpoint").setDesc("The URL of your local LLM server").addText((text) => text.setPlaceholder("http://localhost:11434").setValue(this.plugin.settings.ollamaEndpoint).onChange(async (value) => {
+      new import_obsidian2.Setting(containerEl).setName("LLM endpoint").setDesc("The URL of your local LLM server.").addText((text) => text.setPlaceholder("http://localhost:11434").setValue(this.plugin.settings.ollamaEndpoint).onChange(async (value) => {
         this.plugin.settings.ollamaEndpoint = value;
         await this.plugin.saveSettings();
       }));
-      new import_obsidian.Setting(containerEl).setName("Manage models").setHeading();
+      new import_obsidian2.Setting(containerEl).setName("Manage models").setHeading();
       const modelsContainer = containerEl.createDiv({ cls: "smartwrite-models-container" });
       void this.renderModelsSection(modelsContainer);
     }
-    new import_obsidian.Setting(containerEl).setName("Output language").setDesc("Default language for AI responses (auto matches input text)").addDropdown((dropdown) => dropdown.addOption("auto", "Auto (match input)").addOption("pt-br", "Portuguese (BR)").addOption("en-us", "English (US)").addOption("es", "Spanish").addOption("fr", "French").addOption("de", "German").setValue(this.plugin.settings.outputLanguage).onChange(async (value) => {
+    new import_obsidian2.Setting(containerEl).setName("Output language").setDesc('Default language for AI responses. "Auto" matches the input text language.').addDropdown((dropdown) => dropdown.addOption("auto", "Auto (match input)").addOption("pt-br", "Portuguese (BR)").addOption("en-us", "English (US)").addOption("es", "Spanish").addOption("fr", "French").addOption("de", "German").setValue(this.plugin.settings.outputLanguage).onChange(async (value) => {
       this.plugin.settings.outputLanguage = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian.Setting(containerEl).setName("Longform integration").setHeading();
-    new import_obsidian.Setting(containerEl).setName("Enable longform integration").setDesc("Allow analysis of full longform projects").addToggle((toggle) => toggle.setValue(this.plugin.settings.longformEnabled).onChange(async (value) => {
+    new import_obsidian2.Setting(containerEl).setName("Automatic analysis").setHeading();
+    new import_obsidian2.Setting(containerEl).setName("Enable background analysis").setDesc("Analyze your text automatically while you write (requires Ollama).").addToggle((toggle) => toggle.setValue(this.plugin.settings.backgroundAnalysisEnabled).onChange(async (value) => {
+      this.plugin.settings.backgroundAnalysisEnabled = value;
+      await this.plugin.saveSettings();
+      this.display();
+    }));
+    if (this.plugin.settings.backgroundAnalysisEnabled) {
+      new import_obsidian2.Setting(containerEl).setName("Analysis interval (words)").setDesc("Trigger analysis after writing this many words.").addSlider((slider) => slider.setLimits(50, 500, 50).setValue(this.plugin.settings.backgroundAnalysisThreshold).setDynamicTooltip().onChange(async (value) => {
+        this.plugin.settings.backgroundAnalysisThreshold = value;
+        await this.plugin.saveSettings();
+      }));
+    }
+    new import_obsidian2.Setting(containerEl).setName("Longform integration").setHeading();
+    new import_obsidian2.Setting(containerEl).setName("Enable longform integration").setDesc("Allow analysis of full longform projects.").addToggle((toggle) => toggle.setValue(this.plugin.settings.longformEnabled).onChange(async (value) => {
       this.plugin.settings.longformEnabled = value;
       await this.plugin.saveSettings();
       this.display();
     }));
     if (this.plugin.settings.longformEnabled) {
       const projects = this.plugin.longformService.getProjects();
-      new import_obsidian.Setting(containerEl).setName("Active longform project").setDesc('Select the project to be analyzed when "Longform project" is selected in the panel.').addDropdown((dropdown) => {
+      new import_obsidian2.Setting(containerEl).setName("Active longform project").setDesc('Select the project for analysis when "Longform project" is chosen in the panel.').addDropdown((dropdown) => {
         dropdown.addOption("", "Select a project...");
         projects.forEach((p) => {
           dropdown.addOption(p.path, p.name);
@@ -2662,6 +2740,87 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
         });
       });
     }
+    new import_obsidian2.Setting(containerEl).setName("User personas").setHeading();
+    const personasContainer = containerEl.createDiv({ cls: "smartwrite-custom-personas-container" });
+    this.renderCustomPersonasSection(personasContainer);
+    new import_obsidian2.Setting(containerEl).setName("Available personas (Sidebar)").setHeading();
+    const enabledPersonasContainer = containerEl.createDiv({ cls: "smartwrite-enabled-personas-container" });
+    this.renderEnabledPersonasSection(enabledPersonasContainer);
+  }
+  renderEnabledPersonasSection(container) {
+    container.empty();
+    container.createDiv({
+      cls: "smartwrite-suggestion-description smartwrite-mb-12",
+      text: 'Choose which personas appear in the sidebar dropdown. Enabled personas will also be used in the "Analyze with ALL" feature.'
+    });
+    const personas = this.plugin.personaManager.listAllPersonas();
+    const listContainer = container.createDiv({ cls: "smartwrite-persona-selection-list" });
+    personas.forEach((persona) => {
+      const row = listContainer.createDiv({ cls: "smartwrite-persona-selection-row-full" });
+      const left = row.createDiv({ cls: "smartwrite-persona-selection-left" });
+      const checkbox = left.createEl("input", { type: "checkbox" });
+      checkbox.checked = this.plugin.settings.enabledPersonas.includes(persona.id);
+      checkbox.addEventListener("change", async () => {
+        if (checkbox.checked) {
+          if (!this.plugin.settings.enabledPersonas.includes(persona.id)) {
+            this.plugin.settings.enabledPersonas.push(persona.id);
+          }
+        } else {
+          this.plugin.settings.enabledPersonas = this.plugin.settings.enabledPersonas.filter((id) => id !== persona.id);
+        }
+        await this.plugin.saveSettings();
+      });
+      const right = row.createDiv({ cls: "smartwrite-persona-selection-info" });
+      const titleRow = right.createDiv({ cls: "smartwrite-persona-selection-title" });
+      titleRow.createSpan({ text: `${persona.icon} ${persona.name}`, cls: "smartwrite-fw-bold" });
+      right.createDiv({ text: persona.description, cls: "smartwrite-persona-selection-desc" });
+    });
+  }
+  renderCustomPersonasSection(container) {
+    container.empty();
+    const addSetting = new import_obsidian2.Setting(container).setName("Create new persona").setDesc("Define a custom persona for your writing analysis.").addButton((btn) => btn.setButtonText("Add persona").setCta().onClick(() => {
+      new PersonaEditorModal(this.app, null, async (persona) => {
+        this.plugin.settings.customPersonas.push(persona);
+        await this.plugin.saveSettings();
+        this.plugin.personaManager.reloadPersonas();
+        this.renderCustomPersonasSection(container);
+      }).open();
+    }));
+    if (this.plugin.settings.customPersonas.length === 0) {
+      container.createDiv({
+        cls: "smartwrite-suggestion-description smartwrite-mt-12-italic-o7",
+        text: "You haven't created any custom personas yet."
+      });
+      return;
+    }
+    const listDiv = container.createDiv({ cls: "smartwrite-custom-personas-list" });
+    this.plugin.settings.customPersonas.forEach((persona, index) => {
+      const personaRow = listDiv.createDiv({ cls: "smartwrite-model-row" });
+      const info = personaRow.createDiv({ cls: "model-info smartwrite-flex-1" });
+      info.createDiv({ cls: "model-name smartwrite-fw-bold" }).setText(`${persona.icon} ${persona.name}`);
+      info.createDiv({ cls: "model-meta" }).setText(persona.description);
+      const actions = personaRow.createDiv({ cls: "model-actions" });
+      const editBtn = actions.createEl("button", { cls: "clickable-icon" });
+      (0, import_obsidian2.setIcon)(editBtn, "pencil");
+      editBtn.addEventListener("click", () => {
+        new PersonaEditorModal(this.app, persona, async (updatedPersona) => {
+          this.plugin.settings.customPersonas[index] = updatedPersona;
+          await this.plugin.saveSettings();
+          this.plugin.personaManager.reloadPersonas();
+          this.renderCustomPersonasSection(container);
+        }).open();
+      });
+      const deleteBtn = actions.createEl("button", { cls: "clickable-icon destructive" });
+      (0, import_obsidian2.setIcon)(deleteBtn, "trash");
+      deleteBtn.addEventListener("click", () => {
+        new ConfirmationModal(this.app, `Remove persona "${persona.name}"?`, async () => {
+          this.plugin.settings.customPersonas.splice(index, 1);
+          await this.plugin.saveSettings();
+          this.plugin.personaManager.reloadPersonas();
+          this.renderCustomPersonasSection(container);
+        }).open();
+      });
+    });
   }
   async renderModelsSection(container) {
     container.empty();
@@ -2675,7 +2834,7 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
     const isConnected = await this.plugin.ollamaService.checkConnection();
     if (!isConnected) {
       const errorDiv = container.createDiv({ cls: "smartwrite-setting-error smartwrite-error-box" });
-      errorDiv.setText("\u26A0\uFE0F Ollama is not connected. Please start Ollama to manage models.");
+      errorDiv.setText("\u26A0\uFE0F Ollama is not connected. Please start Ollama to manage your models.");
       return;
     }
     const installedModels = await this.plugin.ollamaService.listModels();
@@ -2695,29 +2854,29 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
       if (isInstalled) {
         if (!isSelected) {
           const selectBtn = actionsDiv.createEl("button", { text: "Select" });
-          selectBtn.addEventListener("click", async () => {
+          selectBtn.addEventListener("click", () => {
             this.plugin.settings.ollamaModel = model.id;
-            await this.plugin.saveSettings();
-            new import_obsidian.Notice(`Selected model: ${model.name}`);
-            this.renderModelsSection(container);
+            void this.plugin.saveSettings();
+            new import_obsidian2.Notice(`Selected model: ${model.name}`);
+            void this.renderModelsSection(container);
           });
         }
         const deleteBtn = actionsDiv.createEl("button", { cls: "clickable-icon destructive smartwrite-model-delete-btn" });
-        (0, import_obsidian.setIcon)(deleteBtn, "trash");
-        deleteBtn.setAttribute("aria-label", "Uninstall Model");
+        (0, import_obsidian2.setIcon)(deleteBtn, "trash");
+        deleteBtn.setAttribute("aria-label", "Uninstall model");
         deleteBtn.addEventListener("click", () => {
           new ConfirmationModal(this.app, `Are you sure you want to uninstall ${model.name}?`, async () => {
-            new import_obsidian.Notice(`Uninstalling ${model.name}...`);
+            new import_obsidian2.Notice(`Uninstalling ${model.name}...`);
             const success = await this.plugin.ollamaService.deleteModel(model.id);
             if (success) {
-              new import_obsidian.Notice(`${model.name} uninstalled.`);
+              new import_obsidian2.Notice(`${model.name} uninstalled.`);
               if (isSelected) {
                 this.plugin.settings.ollamaModel = "";
                 await this.plugin.saveSettings();
               }
               await this.renderModelsSection(container);
             } else {
-              new import_obsidian.Notice("Failed to uninstall model.");
+              new import_obsidian2.Notice("Failed to uninstall model.");
             }
           }).open();
         });
@@ -2726,7 +2885,7 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
         installBtn.addEventListener("click", async () => {
           installBtn.setText("Installing...");
           installBtn.disabled = true;
-          new import_obsidian.Notice(`Installing ${model.name}. This may take a while...`);
+          new import_obsidian2.Notice(`Installing ${model.name}. This may take a while...`);
           const success = await this.plugin.ollamaService.pullModel(model.id, (progress) => {
             if (progress.status === "downloading" && progress.percent) {
               installBtn.setText(`${progress.percent}%`);
@@ -2735,14 +2894,14 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
             }
           });
           if (success) {
-            new import_obsidian.Notice(`${model.name} installed successfully!`);
+            new import_obsidian2.Notice(`${model.name} installed successfully!`);
             if (!this.plugin.settings.ollamaModel) {
               this.plugin.settings.ollamaModel = model.id;
               await this.plugin.saveSettings();
             }
             this.renderModelsSection(container);
           } else {
-            new import_obsidian.Notice("Installation failed. Check console for details.");
+            new import_obsidian2.Notice("Installation failed. Check console for details.");
             installBtn.setText("Install");
             installBtn.disabled = false;
           }
@@ -2751,7 +2910,7 @@ var SmartWriteSettingTab = class extends import_obsidian.PluginSettingTab {
     }
   }
 };
-var ConfirmationModal = class extends import_obsidian.Modal {
+var ConfirmationModal = class extends import_obsidian2.Modal {
   constructor(app, message, onConfirm) {
     super(app);
     this.message = message;
@@ -2779,11 +2938,11 @@ var ConfirmationModal = class extends import_obsidian.Modal {
 };
 
 // src/SidebarView.ts
-var import_obsidian5 = require("obsidian");
+var import_obsidian11 = require("obsidian");
 
 // src/ui/components/BasePanel.ts
-var import_obsidian2 = require("obsidian");
-var BasePanel = class extends import_obsidian2.Component {
+var import_obsidian3 = require("obsidian");
+var BasePanel = class extends import_obsidian3.Component {
   constructor(containerEl, title) {
     super();
     this.isCollapsed = false;
@@ -2937,7 +3096,7 @@ var TextMetricsPanel = class extends BasePanel {
 };
 
 // src/ui/components/SuggestionsPanel.ts
-var import_obsidian3 = require("obsidian");
+var import_obsidian4 = require("obsidian");
 var SuggestionsPanel = class extends BasePanel {
   constructor(containerEl, plugin) {
     super(containerEl, "Suggestions");
@@ -2945,6 +3104,7 @@ var SuggestionsPanel = class extends BasePanel {
     this.plugin = plugin;
   }
   renderContent() {
+    var _a;
     if (!this.plugin) return;
     this.contentEl.empty();
     if (!this.suggestions || this.suggestions.suggestions.length === 0) {
@@ -2958,8 +3118,8 @@ var SuggestionsPanel = class extends BasePanel {
         aggregated.set("repetition", {
           type: "repetition",
           severity: s.severity,
-          count: s.details.length,
-          instances: s.details
+          count: ((_a = s.details) == null ? void 0 : _a.length) || 0,
+          instances: s.details || []
         });
         continue;
       }
@@ -3010,21 +3170,23 @@ var SuggestionsPanel = class extends BasePanel {
         group.instances.slice(0, 10).forEach((instance) => {
           const detailItem = detailsContainer.createDiv({ cls: "smartwrite-detail-item" });
           if (group.type === "repetition") {
+            const rep = instance;
             detailItem.addClass("smartwrite-repetition-item");
-            detailItem.createSpan({ cls: "smartwrite-detail-text" }).setText(instance.word);
-            detailItem.createSpan({ cls: "smartwrite-detail-sub" }).setText(String(instance.count));
+            detailItem.createSpan({ cls: "smartwrite-detail-text" }).setText(rep.word);
+            detailItem.createSpan({ cls: "smartwrite-detail-sub" }).setText(String(rep.count));
           } else {
+            const sug = instance;
             detailItem.addClass("smartwrite-simple-item");
-            detailItem.createSpan({ cls: "smartwrite-detail-text" }).setText(instance.message || group.type);
+            detailItem.createSpan({ cls: "smartwrite-detail-text" }).setText(sug.message || group.type);
             detailItem.addClass("smartwrite-pointer");
             detailItem.addEventListener("click", (e) => {
               e.stopPropagation();
-              if (instance.position && instance.position.start !== void 0) {
-                const activeView = this.plugin.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
+              if (sug.position && sug.position.start !== void 0) {
+                const activeView = this.plugin.app.workspace.getActiveViewOfType(import_obsidian4.MarkdownView);
                 if (activeView) {
                   activeView.editor.setSelection(
-                    activeView.editor.offsetToPos(instance.position.start),
-                    activeView.editor.offsetToPos(instance.position.end)
+                    activeView.editor.offsetToPos(sug.position.start),
+                    activeView.editor.offsetToPos(sug.position.end)
                   );
                   activeView.editor.focus();
                 }
@@ -3110,11 +3272,160 @@ var ReadabilityPanel = class extends BasePanel {
 };
 
 // src/ui/components/PersonaPanel.ts
-var import_obsidian4 = require("obsidian");
+var import_obsidian8 = require("obsidian");
+
+// src/ui/modals/HelpModal.ts
+var import_obsidian5 = require("obsidian");
+var HelpModal = class extends import_obsidian5.Modal {
+  constructor(app, title, content) {
+    super(app);
+    this.title = title;
+    this.content = content;
+  }
+  onOpen() {
+    const { contentEl, titleEl } = this;
+    titleEl.setText(this.title);
+    contentEl.empty();
+    const container = contentEl.createDiv({ cls: "smartwrite-help-modal-content" });
+    if (typeof this.content === "string") {
+      container.createEl("p", { text: this.content });
+    } else {
+      container.appendChild(this.content);
+    }
+    const buttonContainer = contentEl.createDiv({ cls: "smartwrite-modal-buttons smartwrite-mt-20" });
+    const closeBtn = buttonContainer.createEl("button", { text: "Close", cls: "mod-cta" });
+    closeBtn.addEventListener("click", () => this.close());
+  }
+  onClose() {
+    this.contentEl.empty();
+  }
+};
+
+// src/ui/modals/QueueAnalysisModal.ts
+var import_obsidian6 = require("obsidian");
+var QueueAnalysisModal = class extends import_obsidian6.Modal {
+  constructor(app, personaName, onConfirm) {
+    super(app);
+    this.personaName = personaName;
+    this.onConfirm = onConfirm;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h3", { text: "Analysis in Progress" });
+    contentEl.createEl("p", {
+      text: `An analysis is already running. Would you like to queue the analysis for "${this.personaName}"? It will start automatically once the current process finishes.`
+    });
+    new import_obsidian6.Setting(contentEl).addButton((btn) => btn.setButtonText("Queue Analysis").setCta().onClick(() => {
+      this.onConfirm();
+      this.close();
+    })).addButton((btn) => btn.setButtonText("Cancel").onClick(() => this.close()));
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+};
+
+// src/ui/modals/FolderSelectionModal.ts
+var import_obsidian7 = require("obsidian");
+var FolderSelectionModal = class extends import_obsidian7.Modal {
+  constructor(app, onSelect, onCancel) {
+    super(app);
+    this.selectionMade = false;
+    this.onSelect = onSelect;
+    this.onCancel = onCancel;
+    this.folders = this.getAllFolders();
+  }
+  getAllFolders() {
+    const folders = [];
+    const files = this.app.vault.getAllLoadedFiles();
+    files.forEach((file) => {
+      if (file instanceof import_obsidian7.TFolder) {
+        folders.push(file);
+      }
+    });
+    return folders.sort((a, b) => a.path.localeCompare(b.path));
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h3", { text: "Select Output Directory" });
+    contentEl.createEl("p", { text: "Where would you like to save the analysis report?" });
+    const searchInput = contentEl.createEl("input", {
+      type: "text",
+      cls: "smartwrite-w100 smartwrite-mb-12",
+      placeholder: "Search folders..."
+    });
+    const listContainer = contentEl.createDiv({ cls: "smartwrite-folder-list" });
+    this.renderFolders(listContainer, this.folders);
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.toLowerCase();
+      const filtered = this.folders.filter((f) => f.path.toLowerCase().includes(query));
+      this.renderFolders(listContainer, filtered);
+    });
+  }
+  renderFolders(container, folders) {
+    container.empty();
+    if (folders.length === 0) {
+      container.createDiv({ text: "No folders found.", cls: "smartwrite-p8-o5" });
+      return;
+    }
+    folders.forEach((folder) => {
+      const folderItem = container.createDiv({ cls: "smartwrite-folder-item" });
+      folderItem.createSpan({ text: folder.path === "/" ? "Vault Root (/)" : folder.path });
+      folderItem.addEventListener("click", () => {
+        this.selectionMade = true;
+        this.onSelect(folder);
+        this.close();
+      });
+    });
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+    if (!this.selectionMade && this.onCancel) {
+      this.onCancel();
+    }
+  }
+};
+
+// src/ui/components/PersonaPanel.ts
+var import_obsidian9 = require("obsidian");
 var PersonaPanel = class extends BasePanel {
   constructor(containerEl, plugin) {
     super(containerEl, "Persona analysis");
     this.plugin = plugin;
+    const header = containerEl.querySelector(".smartwrite-panel-header");
+    if (header) {
+      this.addHelpIconToHeader(header);
+    }
+  }
+  addHelpIconToHeader(header) {
+    const helpIcon = header.createSpan({ cls: "smartwrite-help-icon-inline" });
+    (0, import_obsidian9.setIcon)(helpIcon, "help-circle");
+    helpIcon.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.showMainHelp();
+    });
+  }
+  addHelpIconToLabel(labelContainer, onClick) {
+    const helpIcon = labelContainer.createSpan({ cls: "smartwrite-help-icon-small" });
+    (0, import_obsidian9.setIcon)(helpIcon, "help-circle");
+    helpIcon.addEventListener("click", (e) => {
+      e.preventDefault();
+      onClick();
+    });
+  }
+  showMainHelp() {
+    const content = document.createElement("div");
+    content.createEl("p", { text: "In this section, you can configure how the AI analyzes your text:" });
+    const list = content.createEl("ul");
+    list.createEl("li", { text: "Mode: Choose between critical analysis (Personas) or Translation." });
+    list.createEl("li", { text: "Analysis Target: Analyze the current file or a complete Longform project." });
+    list.createEl("li", { text: 'Select Persona: Choose the "personality" of the reviewer.' });
+    list.createEl("li", { text: "Response Language: The language the AI will use for its feedback." });
+    new HelpModal(this.plugin.app, "Persona Analysis - Help", content).open();
   }
   renderContent() {
     if (!this.plugin) return;
@@ -3134,12 +3445,19 @@ var PersonaPanel = class extends BasePanel {
   }
   renderAnalysisInterface(container) {
     const modeContainer = container.createDiv({ cls: "smartwrite-control-group smartwrite-mb-15" });
-    modeContainer.createEl("label", { text: "Mode" });
+    const modeLabel = modeContainer.createEl("label", { text: "Mode " });
+    this.addHelpIconToLabel(modeLabel, () => {
+      new HelpModal(this.plugin.app, "Mode", 'Choose "Analyze" to receive critical feedback from specific personas, or "Translate" to convert your text to another language while preserving its original meaning.').open();
+    });
     const modeSelect = modeContainer.createEl("select", { cls: "dropdown smartwrite-w100" });
     modeSelect.createEl("option", { value: "analyze", text: "\u{1F9D0} Analyze (personas)" });
     modeSelect.createEl("option", { value: "translate", text: "\u{1F30D} Translate" });
     const targetSection = container.createDiv({ cls: "smartwrite-stat-item smartwrite-mb-12" });
-    targetSection.createDiv({ cls: "smartwrite-stat-label" }).setText("Analysis target");
+    const targetLabel = targetSection.createDiv({ cls: "smartwrite-stat-label" });
+    targetLabel.createSpan({ text: "Analysis target " });
+    this.addHelpIconToLabel(targetLabel, () => {
+      new HelpModal(this.plugin.app, "Analysis Target", 'Defines which text is sent for analysis. "Current file" analyzes the open document (or selection). If the "Longform" plugin is active and configured, you can analyze the entire project at once.').open();
+    });
     const targetSelect = targetSection.createEl("select", { cls: "dropdown smartwrite-w100" });
     const defaultOption = targetSelect.createEl("option", { value: "current" });
     defaultOption.setText("\u{1F4C4} Current file");
@@ -3152,9 +3470,23 @@ var PersonaPanel = class extends BasePanel {
       }
     }
     const selectorSection = container.createDiv({ cls: "smartwrite-stat-item smartwrite-mb-16" });
-    selectorSection.createDiv({ cls: "smartwrite-stat-label" }).setText("Select persona");
+    const personaLabel = selectorSection.createDiv({ cls: "smartwrite-stat-label" });
+    personaLabel.createSpan({ text: "Select persona " });
+    this.addHelpIconToLabel(personaLabel, () => {
+      const content = document.createElement("div");
+      content.createEl("p", { text: "Select the desired analysis profile. Each persona focuses on different aspects of your writing:", cls: "smartwrite-mb-12" });
+      const table = content.createEl("table", { cls: "smartwrite-persona-help-table" });
+      this.plugin.personaManager.listPersonas().forEach((p) => {
+        const row = table.createEl("tr");
+        row.createEl("td", { text: `${p.icon} ${p.name}`, cls: "smartwrite-fw-bold" });
+        row.createEl("td", { text: p.description });
+      });
+      new HelpModal(this.plugin.app, "Available Personas", content).open();
+    });
     const personas = this.plugin.personaManager.listPersonas();
     const select = selectorSection.createEl("select", { cls: "dropdown" });
+    const allOption = select.createEl("option", { value: "all-enabled", text: "\u{1F680} Analyze with ALL enabled personas" });
+    if (this.plugin.settings.selectedPersona === "all-enabled") allOption.selected = true;
     personas.forEach((persona) => {
       const option = select.createEl("option", { value: persona.id });
       option.setText(`${persona.icon} ${persona.name}`);
@@ -3162,10 +3494,10 @@ var PersonaPanel = class extends BasePanel {
         option.selected = true;
       }
     });
-    select.addEventListener("change", async (e) => {
+    select.addEventListener("change", (e) => {
       const target = e.target;
       this.plugin.settings.selectedPersona = target.value;
-      await this.plugin.saveSettings();
+      void this.plugin.saveSettings();
     });
     const selectedPersona = personas.find((p) => p.id === this.plugin.settings.selectedPersona);
     if (selectedPersona) {
@@ -3175,7 +3507,10 @@ var PersonaPanel = class extends BasePanel {
       description.setText(selectedPersona.description);
     }
     const langContainer = container.createEl("div", { cls: "smartwrite-control-group" });
-    langContainer.createEl("label", { text: "Response language" });
+    const langLabel = langContainer.createEl("label", { text: "Response language " });
+    this.addHelpIconToLabel(langLabel, () => {
+      new HelpModal(this.plugin.app, "Response Language", 'Defines the language the AI should use for its feedback. "Auto" will attempt to detect the language of your original text.').open();
+    });
     const langSelect = langContainer.createEl("select", { cls: "smartwrite-w100 smartwrite-mb-15" });
     const languages = [
       { value: "auto", label: "Auto (Match Input)" },
@@ -3190,14 +3525,25 @@ var PersonaPanel = class extends BasePanel {
       option.setText(lang.label);
     });
     langSelect.value = this.plugin.settings.outputLanguage || "auto";
-    langSelect.addEventListener("change", async (e) => {
+    langSelect.addEventListener("change", (e) => {
       const target = e.target;
       this.plugin.settings.outputLanguage = target.value;
-      await this.plugin.saveSettings();
+      void this.plugin.saveSettings();
     });
-    const actionButton = container.createEl("button", {
+    const actionButtonContainer = container.createDiv({ cls: "smartwrite-analyze-btn-container" });
+    const actionButton = actionButtonContainer.createEl("button", {
       text: modeSelect.value === "translate" ? "Translate text" : "Analyze text",
-      cls: "mod-cta smartwrite-w100 smartwrite-mb-16"
+      cls: "smartwrite-analyze-btn mod-cta smartwrite-w100"
+    });
+    const progressMeter = actionButton.createDiv({ cls: "smartwrite-progress-meter" });
+    const stopButton = actionButtonContainer.createEl("button", {
+      text: "Stop Analysis",
+      cls: "smartwrite-stop-btn is-hidden"
+    });
+    stopButton.addEventListener("click", () => {
+      this.plugin.personaManager.cancelAnalysis();
+      new import_obsidian8.Notice("Analysis stopped.");
+      this.resetAnalysisUI(actionButton, stopButton, progressMeter);
     });
     modeSelect.addEventListener("change", () => {
       if (modeSelect.value === "translate") {
@@ -3212,17 +3558,63 @@ var PersonaPanel = class extends BasePanel {
         actionButton.classList.remove("mod-warning");
       }
     });
-    actionButton.addEventListener("click", async () => {
+    actionButton.addEventListener("click", () => {
       if (modeSelect.value === "translate") {
-        await this.performTranslation(container, actionButton, targetSelect.value, langSelect.value);
+        void this.performTranslation(container, actionButton, targetSelect.value, langSelect.value);
       } else {
-        await this.performAnalysis(container, actionButton, targetSelect.value);
+        void this.performAnalysis(container, actionButton, targetSelect.value);
       }
     });
     container.createDiv({
       cls: "smartwrite-persona-results",
       attr: { id: "persona-results" }
     });
+    const bgArea = container.createDiv({
+      cls: "smartwrite-background-feedback is-hidden",
+      attr: { id: "background-feedback" }
+    });
+    const lastResult = this.plugin.getLastBackgroundResult();
+    if (lastResult) {
+      this.showBackgroundAnalysis(lastResult);
+    }
+  }
+  showBackgroundAnalysis(result) {
+    const bgContainer = this.contentEl.querySelector("#background-feedback");
+    if (!bgContainer) return;
+    bgContainer.empty();
+    bgContainer.removeClass("is-hidden");
+    bgContainer.createDiv({ cls: "smartwrite-section-heading", text: "\u{1F4A1} Live Feedback" });
+    const content = bgContainer.createDiv({ cls: "smartwrite-suggestion-description smartwrite-mb-12" });
+    content.setText(result);
+    const syncBtn = bgContainer.createEl("button", {
+      text: "Save as note",
+      cls: "smartwrite-w100 mod-cta"
+    });
+    syncBtn.addEventListener("click", () => {
+      void this.saveBackgroundAnalysisAsFile(result);
+    });
+  }
+  async saveBackgroundAnalysisAsFile(analysis) {
+    const persona = this.plugin.personaManager.getPersona(this.plugin.settings.selectedPersona);
+    const name = persona ? persona.name : "Assistant";
+    const timestamp = (/* @__PURE__ */ new Date()).toLocaleString();
+    const fileContent = `# Live Feedback: ${name}
+
+**Date:** ${timestamp}
+
+## AI feedback
+
+${analysis}`;
+    const now = /* @__PURE__ */ new Date();
+    const timeString = `${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+    const filename = `Live Feedback - ${name} - ${timeString}.md`;
+    try {
+      const newFile = await this.plugin.app.vault.create(filename, fileContent);
+      await this.plugin.app.workspace.getLeaf("tab").openFile(newFile);
+      new import_obsidian8.Notice(`Feedback saved to: ${filename}`);
+    } catch (e) {
+      new import_obsidian8.Notice("Failed to save file.");
+    }
   }
   renderSetupGuide(container) {
     container.createEl("div", {
@@ -3230,9 +3622,9 @@ var PersonaPanel = class extends BasePanel {
       cls: "smartwrite-section-heading smartwrite-mb-16-accent"
     });
     const optionHeader = container.createDiv({ cls: "smartwrite-stat-label smartwrite-mb-12" });
-    optionHeader.setText("Choose installation method:");
+    optionHeader.setText("Choose your installation method:");
     const option1 = container.createDiv({ cls: "smartwrite-stat-item smartwrite-mb-16 smartwrite-p12-bg2-r6" });
-    option1.createEl("strong", { text: "\u{1F4F1} Option 1: Ollama app (menu bar icon)" });
+    option1.createEl("strong", { text: "\u{1F4F1} Option 1: Ollama app (with menu bar icon)" });
     option1.createEl("br");
     const step1a = option1.createDiv({ cls: "smartwrite-mt-8-ml-12" });
     step1a.createSpan({ text: "1. ", cls: "smartwrite-fw-bold" });
@@ -3244,16 +3636,16 @@ var PersonaPanel = class extends BasePanel {
     downloadLink.setAttr("target", "_blank");
     const step2a = option1.createDiv({ cls: "smartwrite-ml-12" });
     step2a.createSpan({ text: "2. ", cls: "smartwrite-fw-bold" });
-    step2a.appendText("Drag to Applications folder");
+    step2a.appendText("Drag to your Applications folder");
     const step3a = option1.createDiv({ cls: "smartwrite-ml-12" });
     step3a.createSpan({ text: "3. ", cls: "smartwrite-fw-bold" });
     step3a.appendText("Launch Ollama.app");
     const option2 = container.createDiv({ cls: "smartwrite-stat-item smartwrite-mb-16 smartwrite-p12-bg2-r6-accent-border" });
-    option2.createEl("strong", { text: "\u{1F47B} Option 2: Background service (recommended)" });
+    option2.createEl("strong", { text: "\u{1F47B} Option 2: Background service (Recommended)" });
     option2.createEl("br");
-    option2.createSpan({ text: "Completely invisible, no menu bar icon", cls: "smartwrite-mb-12-italic-f11" });
+    option2.createSpan({ text: "This is completely invisible, with no menu bar icon.", cls: "smartwrite-mb-12-italic-f11" });
     const brewNote = option2.createDiv({ cls: "smartwrite-mt-8-f12-italic" });
-    brewNote.setText("Requirements: Homebrew installed");
+    brewNote.setText("Requires Homebrew to be installed.");
     const brewLink = option2.createEl("a", {
       text: "Install Homebrew",
       href: "https://brew.sh",
@@ -3267,25 +3659,29 @@ var PersonaPanel = class extends BasePanel {
     const infoBox = container.createDiv({
       cls: "smartwrite-suggestion-description smartwrite-mt-16-p12-bg2-r6-accent-left"
     });
-    infoBox.createEl("strong", { text: "\u{1F4A1} 100% local & free" });
+    infoBox.createEl("strong", { text: "\u{1F4A1} 100% local and free" });
     infoBox.createEl("br");
-    infoBox.appendText("No internet required after setup. No subscriptions. Complete privacy.");
+    infoBox.appendText("No internet is required after setup. There are no subscriptions, and you have complete privacy.");
     infoBox.createEl("br");
-    infoBox.appendText("Once running, this plugin auto-downloads the AI model.");
+    infoBox.appendText("Once running, this plugin will automatically download the required AI model.");
     const retryButton = container.createEl("button", {
       text: "Check connection",
       cls: "mod-cta smartwrite-mt-16 smartwrite-w100"
     });
-    retryButton.addEventListener("click", async () => {
+    retryButton.addEventListener("click", () => {
       retryButton.setText("Checking...");
       retryButton.disabled = true;
-      const connected = await this.plugin.ollamaService.checkConnection();
-      if (connected) {
-        this.renderContent();
-      } else {
+      this.plugin.ollamaService.checkConnection().then((connected) => {
+        if (connected) {
+          this.renderContent();
+        } else {
+          retryButton.setText("Check Connection");
+          retryButton.disabled = false;
+        }
+      }).catch(() => {
         retryButton.setText("Check Connection");
         retryButton.disabled = false;
-      }
+      });
     });
   }
   update(_data) {
@@ -3311,64 +3707,152 @@ var PersonaPanel = class extends BasePanel {
     }
   }
   async performAnalysis(container, button, targetValue) {
+    var _a;
     const { text, title } = await this.getTargetContent(targetValue);
     if (!text) return;
     button.setText("Analyzing...");
     button.addClass("smartwrite-btn-processing");
     button.disabled = true;
-    try {
-      const result = await this.plugin.personaManager.analyzeText(
-        this.plugin.settings.selectedPersona,
-        text,
-        this.plugin.settings.outputLanguage
-      );
-      if (result.error) {
-        const resultsContainer = container.querySelector("#persona-results");
-        if (resultsContainer) {
-          resultsContainer.empty();
-          const errorDiv = resultsContainer.createDiv({
-            cls: "smartwrite-suggestion-description smartwrite-error-box"
-          });
-          errorDiv.setText(`Error: ${result.error}`);
-        }
-        new import_obsidian4.Notice("Analysis failed.");
-      } else {
-        const resultsContainer = container.querySelector("#persona-results");
-        if (resultsContainer) {
-          resultsContainer.empty();
-          const successDiv = resultsContainer.createDiv({
-            cls: "smartwrite-suggestion-description smartwrite-success-box"
-          });
-          successDiv.setText("\u2705 Analysis document created!");
-        }
-        const timestamp = (/* @__PURE__ */ new Date()).toLocaleString();
-        const fileContent = `# Analysis: ${title}
-
-**Persona:** ${result.personaName} ${result.personaId === "fandom" ? "\u{1F4AB}" : "\u{1F4DD}"}
-**Date:** ${timestamp}
-
-## AI feedback
-
-${result.analysis}`;
-        const now = /* @__PURE__ */ new Date();
-        const timeString = `${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
-        const filename = `Analysis - ${result.personaName} - ${timeString}.md`;
-        const newFile = await this.plugin.app.vault.create(filename, fileContent);
-        await this.plugin.app.workspace.getLeaf("tab").openFile(newFile);
-        new import_obsidian4.Notice(`Analysis saved to ${filename}`);
+    const progressMeter = button.querySelector(".smartwrite-progress-meter");
+    const stopButton = (_a = button.parentElement) == null ? void 0 : _a.querySelector(".smartwrite-stop-btn");
+    if (progressMeter) progressMeter.style.height = "0%";
+    if (stopButton) stopButton.removeClass("is-hidden");
+    new FolderSelectionModal(
+      this.plugin.app,
+      async (selectedFolder) => {
+        await this.executeAnalysisWorkflow(container, button, stopButton, text, title, selectedFolder, progressMeter);
+      },
+      () => {
+        this.resetAnalysisUI(button, stopButton, progressMeter);
       }
+    ).open();
+  }
+  resetAnalysisUI(button, stopButton, progressMeter) {
+    button.setText("Analyze text");
+    button.removeClass("smartwrite-btn-processing");
+    button.disabled = false;
+    if (stopButton) stopButton.addClass("is-hidden");
+    if (progressMeter) progressMeter.style.height = "0%";
+  }
+  async executeAnalysisWorkflow(container, button, stopButton, text, title, destFolder, progressMeter) {
+    const selectedId = this.plugin.settings.selectedPersona;
+    try {
+      const run = async (forceQueue = false) => {
+        let results = [];
+        if (selectedId === "all-enabled") {
+          const enabledPersonas = this.plugin.personaManager.listPersonas();
+          for (let i = 0; i < enabledPersonas.length; i++) {
+            const p = enabledPersonas[i];
+            button.setText(`Analyzing (${i + 1}/${enabledPersonas.length}): ${p.name}...`);
+            if (progressMeter) progressMeter.style.height = `${i / enabledPersonas.length * 100}%`;
+            const res = await this.plugin.personaManager.analyzeText(
+              p.id,
+              text,
+              this.plugin.settings.outputLanguage,
+              void 0,
+              forceQueue
+            );
+            if ("isBusy" in res) continue;
+            if (res.error === "Analysis cancelled by user") {
+              this.resetAnalysisUI(button, stopButton, progressMeter);
+              return;
+            }
+            results.push(res);
+          }
+          if (progressMeter) progressMeter.style.height = "100%";
+        } else {
+          const res = await this.plugin.personaManager.analyzeText(
+            selectedId,
+            text,
+            this.plugin.settings.outputLanguage,
+            (s, p) => {
+              if (progressMeter) progressMeter.style.height = `${p}%`;
+            },
+            forceQueue
+          );
+          if ("isBusy" in res) {
+            new QueueAnalysisModal(this.plugin.app, res.personaName, () => {
+              void run(true);
+            }).open();
+            return;
+          }
+          if (res.error === "Analysis cancelled by user") {
+            this.resetAnalysisUI(button, stopButton, progressMeter);
+            return;
+          }
+          results.push(res);
+        }
+        await this.finalizeAnalysisResults(container, results, title, destFolder);
+        this.resetAnalysisUI(button, stopButton, progressMeter);
+      };
+      await run(false);
     } catch (error) {
-      console.error("Analysis failed:", error);
-      new import_obsidian4.Notice("An error occurred during analysis.");
-    } finally {
-      button.setText("Analyze Text");
+      console.error("Analysis workflow failed:", error);
+      button.setText("Analyze text");
       button.removeClass("smartwrite-btn-processing");
       button.disabled = false;
     }
   }
+  async finalizeAnalysisResults(container, results, title, destFolder) {
+    const anyError = results.find((r) => r.error);
+    const resultsContainer = container.querySelector("#persona-results");
+    if (anyError && results.length === 1) {
+      if (resultsContainer) {
+        resultsContainer.empty();
+        resultsContainer.createDiv({ cls: "smartwrite-suggestion-description smartwrite-error-box" }).setText(`Error: ${anyError.error}`);
+      }
+      new import_obsidian8.Notice("Analysis failed.");
+      return;
+    }
+    if (resultsContainer) {
+      resultsContainer.empty();
+      resultsContainer.createDiv({ cls: "smartwrite-suggestion-description smartwrite-success-box" }).setText(`\u2705 ${results.length > 1 ? "Full analysis" : "Analysis"} document created!`);
+    }
+    const timestamp = (/* @__PURE__ */ new Date()).toLocaleString();
+    let fileContent = `# Analysis: ${title}
+
+**Date:** ${timestamp}
+
+`;
+    if (results.length > 1) {
+      fileContent += `**Multi-Persona Analysis (${results.length} personas)**
+
+---
+
+`;
+      results.forEach((res) => {
+        fileContent += `## ${res.personaName} feedback
+
+${res.analysis || res.error || "No feedback generated."}
+
+---
+
+`;
+      });
+    } else {
+      const result = results[0];
+      fileContent += `**Persona:** ${result.personaName}
+
+## AI feedback
+
+${result.analysis}`;
+    }
+    const now = /* @__PURE__ */ new Date();
+    const timeString = `${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+    const baseName = results.length > 1 ? "Full analysis" : `Analysis - ${results[0].personaName}`;
+    const filename = `${baseName} - ${timeString}.md`;
+    const fullPath = destFolder.path === "/" ? filename : `${destFolder.path}/${filename}`;
+    try {
+      const newFile = await this.plugin.app.vault.create(fullPath, fileContent);
+      await this.plugin.app.workspace.getLeaf("tab").openFile(newFile);
+      new import_obsidian8.Notice(`Analysis saved to: ${fullPath}`);
+    } catch (e) {
+      new import_obsidian8.Notice("Failed to create analysis file.");
+    }
+  }
   async performTranslation(_container, button, targetValue, targetLang) {
     if (targetLang === "auto") {
-      new import_obsidian4.Notice("Please select a specific Target Language for translation.");
+      new import_obsidian8.Notice("Please select a specific target language for translation.");
       return;
     }
     const { text, title } = await this.getTargetContent(targetValue);
@@ -3376,6 +3860,8 @@ ${result.analysis}`;
     button.setText("Translating...");
     button.disabled = true;
     button.addClass("smartwrite-btn-processing");
+    const progressMeter = button.querySelector(".smartwrite-progress-meter");
+    if (progressMeter) progressMeter.style.height = "0%";
     try {
       const result = await this.plugin.translationService.translateProject(
         text,
@@ -3383,10 +3869,11 @@ ${result.analysis}`;
         targetLang,
         (status, percent) => {
           button.setText(`${status} (${percent}%)`);
+          if (progressMeter) progressMeter.style.height = `${percent}%`;
         }
       );
       if (result.error) {
-        new import_obsidian4.Notice(`Translation failed: ${result.error}`);
+        new import_obsidian8.Notice(`Translation failed: ${result.error}`);
       } else {
         const timestamp = (/* @__PURE__ */ new Date()).toLocaleString();
         const fileContent = `# Translation: ${title}
@@ -3400,13 +3887,13 @@ ${result.analysis}`;
         const filename = `Translation - ${title} - ${targetLang} - ${timeString}.md`;
         const newFile = await this.plugin.app.vault.create(filename, fileContent);
         await this.plugin.app.workspace.getLeaf("tab").openFile(newFile);
-        new import_obsidian4.Notice(`Translation saved: ${filename}`);
+        new import_obsidian8.Notice(`Translation saved to: ${filename}`);
       }
     } catch (e) {
-      new import_obsidian4.Notice("Translation error.");
+      new import_obsidian8.Notice("Translation error.");
       console.error(e);
     } finally {
-      button.setText("Translate Text");
+      button.setText("Translate text");
       button.disabled = false;
       button.removeClass("smartwrite-btn-processing");
     }
@@ -3415,13 +3902,13 @@ ${result.analysis}`;
     let text = "";
     let title = "Untitled";
     if (targetValue === "current") {
-      let activeView = this.plugin.app.workspace.getActiveViewOfType(import_obsidian4.MarkdownView);
+      let activeView = this.plugin.app.workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
       if (!activeView) {
         const leaf = this.plugin.app.workspace.getMostRecentLeaf();
-        if (leaf && leaf.view instanceof import_obsidian4.MarkdownView) activeView = leaf.view;
+        if (leaf && leaf.view instanceof import_obsidian8.MarkdownView) activeView = leaf.view;
       }
       if (!activeView || !activeView.editor) {
-        new import_obsidian4.Notice("Please open a markdown file.");
+        new import_obsidian8.Notice("Please open a markdown file.");
         return { text: null, title: "" };
       }
       text = activeView.editor.getSelection() || activeView.editor.getValue();
@@ -3431,27 +3918,93 @@ ${result.analysis}`;
       const projects = this.plugin.longformService.getProjects();
       const project = projects.find((p) => p.path === projectPath);
       if (project) {
-        new import_obsidian4.Notice(`\u{1F4DA} Compiling project: ${project.name}...`);
+        new import_obsidian8.Notice(`\u{1F4DA} Compiling project: ${project.name}...`);
         try {
           text = await this.plugin.longformService.getProjectContent(project);
           title = `Project - ${project.name}`;
         } catch (err) {
           console.error("Failed to compile project:", err);
-          new import_obsidian4.Notice("Failed to compile project");
+          new import_obsidian8.Notice("Failed to compile the project.");
           return { text: null, title: "" };
         }
       }
     }
     if (!text || text.trim().length === 0) {
-      new import_obsidian4.Notice("No text found.");
+      new import_obsidian8.Notice("No text found to analyze.");
       return { text: null, title: "" };
     }
     return { text, title };
   }
 };
 
+// src/ui/modals/AnalysisStatusModal.ts
+var import_obsidian10 = require("obsidian");
+var AnalysisStatusModal = class extends import_obsidian10.Modal {
+  constructor(app, plugin) {
+    super(app);
+    this.plugin = plugin;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    this.render();
+    this.refreshInterval = setInterval(() => this.render(), 1e3);
+  }
+  render() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h3", { text: "Analysis Status & Queue" });
+    const status = this.plugin.personaManager.getStatus();
+    const queue = this.plugin.personaManager.getQueue();
+    const activeSection = contentEl.createDiv({ cls: "smartwrite-status-section" });
+    activeSection.createEl("h4", { text: "Active Task", cls: "smartwrite-mb-8" });
+    if (status.isBusy && status.taskName) {
+      const activeRow = activeSection.createDiv({ cls: "smartwrite-status-active-row" });
+      activeRow.createSpan({ text: `\u{1F680} ${status.taskName}`, cls: "smartwrite-fw-bold" });
+      const progressContainer = activeSection.createDiv({ cls: "smartwrite-status-progress-bg" });
+      progressContainer.createDiv({
+        cls: "smartwrite-status-progress-fill",
+        attr: { style: `width: ${status.progress}%` }
+      });
+      activeSection.createDiv({ text: `${status.progress}% complete`, cls: "smartwrite-f11-mt4" });
+      const stopBtn = activeSection.createEl("button", {
+        text: "Stop Task",
+        cls: "smartwrite-stop-btn-modal"
+      });
+      stopBtn.addEventListener("click", () => {
+        this.plugin.personaManager.cancelAnalysis();
+        this.render();
+      });
+    } else {
+      activeSection.createDiv({ text: "No active analysis.", cls: "smartwrite-p8-o5" });
+    }
+    const queueSection = contentEl.createDiv({ cls: "smartwrite-status-section smartwrite-mt-16" });
+    queueSection.createEl("h4", { text: "Queue", cls: "smartwrite-mb-8" });
+    if (queue.length > 0) {
+      queue.forEach((task) => {
+        const row = queueSection.createDiv({ cls: "smartwrite-status-queue-row" });
+        row.createSpan({ text: task.personaName });
+        const removeBtn = row.createDiv({ cls: "smartwrite-status-remove-btn" });
+        (0, import_obsidian10.setIcon)(removeBtn, "trash-2");
+        removeBtn.addEventListener("click", () => {
+          this.plugin.personaManager.cancelQueuedTask(task.index);
+          this.render();
+        });
+      });
+    } else {
+      queueSection.createDiv({ text: "Queue is empty.", cls: "smartwrite-p8-o5" });
+    }
+  }
+  onClose() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+};
+
 // src/SidebarView.ts
-var SidebarView = class extends import_obsidian5.ItemView {
+var SidebarView = class extends import_obsidian11.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.isSettingsOpen = false;
@@ -3461,12 +4014,13 @@ var SidebarView = class extends import_obsidian5.ItemView {
     return "smartwrite-sidebar";
   }
   getDisplayText() {
-    return "SmartWrite companion";
+    return "SmartWrite Companion";
   }
   getIcon() {
     return "pencil";
   }
   async onOpen() {
+    await Promise.resolve();
     const container = this.containerEl.children[1];
     container.empty();
     container.addClass("smartwrite-container");
@@ -3510,15 +4064,13 @@ var SidebarView = class extends import_obsidian5.ItemView {
     const header = container.createDiv({ cls: "smartwrite-header" });
     const titleContainer = header.createDiv({ cls: "smartwrite-title-container" });
     const title = titleContainer.createDiv({ cls: "smartwrite-title" });
-    title.setText("SmartWrite companion");
+    title.setText("SmartWrite Companion");
     const version = titleContainer.createDiv({ cls: "smartwrite-version" });
-    version.setText(`vers\xE3o: ${this.plugin.manifest.version}`);
+    version.setText(`Version: ${this.plugin.manifest.version}`);
     const settingsBtn = header.createDiv({ cls: "smartwrite-settings-btn" });
     settingsBtn.setText("\u2699");
-    import("obsidian").then(({ setIcon: setIcon2 }) => {
-      settingsBtn.empty();
-      setIcon2(settingsBtn, "settings");
-    });
+    settingsBtn.empty();
+    (0, import_obsidian11.setIcon)(settingsBtn, "settings");
     settingsBtn.addEventListener("click", () => this.toggleSettingsPanel());
   }
   createSettingsPanel(container) {
@@ -3528,6 +4080,15 @@ var SidebarView = class extends import_obsidian5.ItemView {
     this.createSettingToggle(this.settingsPanel, "Readability", "showReadability");
     this.createSettingToggle(this.settingsPanel, "Suggestions", "showSuggestions");
     this.createSettingToggle(this.settingsPanel, "Persona analysis", "showPersona");
+    const statusBtnRow = this.settingsPanel.createDiv({ cls: "smartwrite-setting-row smartwrite-mt-8" });
+    const statusBtn = statusBtnRow.createEl("button", {
+      text: "\u{1F4CA} Analysis Status & Queue",
+      cls: "smartwrite-w100 smartwrite-status-trigger-btn"
+    });
+    statusBtn.addEventListener("click", () => {
+      new AnalysisStatusModal(this.plugin.app, this.plugin).open();
+      this.toggleSettingsPanel();
+    });
   }
   createSettingToggle(container, label, settingKey) {
     const row = container.createDiv({ cls: "smartwrite-setting-row" });
@@ -3614,6 +4175,11 @@ var SidebarView = class extends import_obsidian5.ItemView {
       } catch (e) {
         console.error("Error updating install progress", e);
       }
+    }
+  }
+  updateBackgroundAnalysis(result) {
+    if (this.personaPanel && typeof this.personaPanel.showBackgroundAnalysis === "function") {
+      this.personaPanel.showBackgroundAnalysis(result);
     }
   }
 };
@@ -3712,7 +4278,7 @@ var SessionTracker = class {
     const progress = this.getTodayProgress();
     progress.wordsWritten += this.currentSession.wordsWritten;
     progress.sessions.push(this.currentSession);
-    this.saveDailyProgress();
+    void this.saveDailyProgress();
   }
   async loadDailyProgress() {
     const data = await this.plugin.loadData();
@@ -4443,7 +5009,7 @@ var Highlighter = class {
 };
 
 // src/services/OllamaService.ts
-var import_obsidian6 = require("obsidian");
+var import_obsidian12 = require("obsidian");
 var OllamaService = class {
   constructor(plugin) {
     this.isConnected = false;
@@ -4497,7 +5063,7 @@ var OllamaService = class {
    */
   async checkConnection() {
     try {
-      const response = await (0, import_obsidian6.requestUrl)({
+      const response = await (0, import_obsidian12.requestUrl)({
         url: `${this.endpoint}/api/tags`,
         method: "GET"
       });
@@ -4516,7 +5082,7 @@ var OllamaService = class {
    */
   async listModels() {
     try {
-      const response = await (0, import_obsidian6.requestUrl)({
+      const response = await (0, import_obsidian12.requestUrl)({
         url: `${this.endpoint}/api/tags`,
         method: "GET"
       });
@@ -4539,13 +5105,15 @@ var OllamaService = class {
   /**
    * Pulls (downloads) a model from Ollama with progress tracking.
    */
-  async pullModel(modelName, _onProgress) {
+  async pullModel(modelName, _onProgress, signal) {
     try {
-      const response = await (0, import_obsidian6.requestUrl)({
+      const response = await (0, import_obsidian12.requestUrl)({
         url: `${this.endpoint}/api/pull`,
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: modelName, stream: false })
+        body: JSON.stringify({ name: modelName, stream: false }),
+        // @ts-ignore - signal is supported in Obsidian 1.4+ but might not be in types
+        signal
       });
       if (response.status !== 200) {
         throw new Error(`Failed to pull model: ${response.status}`);
@@ -4561,7 +5129,7 @@ var OllamaService = class {
    */
   async deleteModel(modelName) {
     try {
-      const response = await (0, import_obsidian6.requestUrl)({
+      const response = await (0, import_obsidian12.requestUrl)({
         url: `${this.endpoint}/api/delete`,
         method: "DELETE",
         body: JSON.stringify({ name: modelName }),
@@ -4577,12 +5145,12 @@ var OllamaService = class {
    * Generates a completion using the selected model.
    * This is a base implementation for future features.
    */
-  async generateCompletion(prompt, options = {}) {
+  async generateCompletion(prompt, options = {}, signal) {
     if (!this.plugin.settings.ollamaEnabled) {
       throw new Error("Ollama is disabled in settings.");
     }
     try {
-      const response = await (0, import_obsidian6.requestUrl)({
+      const response = await (0, import_obsidian12.requestUrl)({
         url: `${this.endpoint}/api/generate`,
         method: "POST",
         body: JSON.stringify({
@@ -4593,7 +5161,9 @@ var OllamaService = class {
         }),
         headers: {
           "Content-Type": "application/json"
-        }
+        },
+        // @ts-ignore
+        signal
       });
       if (response.status === 200) {
         return response.json.response;
@@ -4606,21 +5176,15 @@ var OllamaService = class {
   }
 };
 
-// src/services/PersonaManager.ts
-var PersonaManager = class {
-  constructor(plugin) {
-    this.personas = /* @__PURE__ */ new Map();
-    this.plugin = plugin;
-    this.initializePersonas();
-  }
-  initializePersonas() {
-    const strictBase = "CRITICAL INSTRUCTION: You are a professional editor. Your goal is to IMPROVE the text, not to praise it. BE DIRECT. DO NOT BE CONDESCENDING. DO NOT USE PHRASES LIKE 'Good job' or 'Here is a little tip'. Point out weaknesses objectively and suggest concrete fixes.";
-    this.personas.set("critical-editor", {
-      id: "critical-editor",
-      name: "Critical Editor",
-      description: "Professional editor focused on structure and coherence",
-      icon: "\u{1F4DD}",
-      systemPrompt: `${strictBase}
+// src/personas/library.ts
+var STRICT_BASE = "CRITICAL INSTRUCTION: You are a professional editor. Your goal is to IMPROVE the text, not to praise it. BE DIRECT. DO NOT BE CONDESCENDING. DO NOT USE PHRASES LIKE 'Good job' or 'Here is a little tip'. Point out weaknesses objectively and suggest concrete fixes.";
+var BUILTIN_PERSONAS = [
+  {
+    id: "critical-editor",
+    name: "Critical Editor",
+    description: "Professional editor focused on structure and coherence",
+    icon: "\u{1F4DD}",
+    systemPrompt: `${STRICT_BASE}
 
 Role: Professional Editor.
 Task: Identifies structural flaws, logic gaps, and pacing issues.
@@ -4633,13 +5197,13 @@ Analysis Focus:
 
 Output:
 Provide 3-5 CRITICAL observations. Start with \u26A0\uFE0F (Issue) or \u{1F4A1} (Fix). NO PRAISE unless it serves a structural purpose.`
-    });
-    this.personas.set("common-reader", {
-      id: "common-reader",
-      name: "Common Reader",
-      description: "Average reader focused on clarity",
-      icon: "\u{1F465}",
-      systemPrompt: `${strictBase}
+  },
+  {
+    id: "common-reader",
+    name: "Common Reader",
+    description: "Average reader focused on clarity",
+    icon: "\u{1F465}",
+    systemPrompt: `${STRICT_BASE}
 
 Role: Average Reader.
 Task: Identifies confusion, boredom, and lack of clarity. Be honest effectively.
@@ -4652,13 +5216,13 @@ Analysis Focus:
 Output:
 3-5 honest points about where the text fails the reader.
 Example: "Paragraph 2 is unintelligible.", "I stopped caring at section 3."`
-    });
-    this.personas.set("technical-reviewer", {
-      id: "technical-reviewer",
-      name: "Technical Reviewer",
-      description: "Copy editor focused on grammar and precision",
-      icon: "\u{1F50D}",
-      systemPrompt: `${strictBase}
+  },
+  {
+    id: "technical-reviewer",
+    name: "Technical Reviewer",
+    description: "Copy editor focused on grammar and precision",
+    icon: "\u{1F50D}",
+    systemPrompt: `${STRICT_BASE}
 
 Role: Copy Editor.
 Task: Catch errors, passive voice, and imprecise language.
@@ -4670,13 +5234,13 @@ Analysis Focus:
 
 Output:
 List errors and corrections directly. No explanation needed if obvious.`
-    });
-    this.personas.set("devils-advocate", {
-      id: "devils-advocate",
-      name: "Devil's Advocate",
-      description: "Critical thinker questioning assumptions",
-      icon: "\u{1F608}",
-      systemPrompt: `${strictBase}
+  },
+  {
+    id: "devils-advocate",
+    name: "Devil's Advocate",
+    description: "Critical thinker questioning assumptions",
+    icon: "\u{1F608}",
+    systemPrompt: `${STRICT_BASE}
 
 Role: Skeptic.
 Task: Destroy weak arguments and expose assumptions.
@@ -4688,14 +5252,13 @@ Analysis Focus:
 
 Output:
 3-5 hard questions or counter-arguments that break the text's premise.`
-    });
-    this.personas.set("booktuber", {
-      id: "booktuber",
-      name: "Market Strategist",
-      // Renamed for more professional feel suitable for strict analysis
-      description: "Evaluates commercial viability",
-      icon: "\u{1F4F1}",
-      systemPrompt: `${strictBase}
+  },
+  {
+    id: "booktuber",
+    name: "Market Strategist",
+    description: "Evaluates commercial viability",
+    icon: "\u{1F4F1}",
+    systemPrompt: `${STRICT_BASE}
 
 Role: Market Analyst.
 Task: Identify why this text will FAIL to sell or go viral.
@@ -4707,13 +5270,13 @@ Analysis Focus:
 
 Output:
 3-5 reasons why a user would scroll past this text.`
-    });
-    this.personas.set("fandom", {
-      id: "fandom",
-      name: "Character Analyst",
-      description: "Analyzes character depth and dynamics",
-      icon: "\u{1F4AB}",
-      systemPrompt: `${strictBase}
+  },
+  {
+    id: "fandom",
+    name: "Character Analyst",
+    description: "Analyzes character depth and dynamics",
+    icon: "\u{1F4AB}",
+    systemPrompt: `${STRICT_BASE}
 
 Role: Character Analyst.
 Task: Critique character depth, motivation, and chemistry.
@@ -4725,13 +5288,13 @@ Analysis Focus:
 
 Output:
 3-5 critiques on character writing flaws.`
-    });
-    this.personas.set("avid-reader", {
-      id: "avid-reader",
-      name: "Genre Critic",
-      description: "Compares with genre standards",
-      icon: "\u{1F4DA}",
-      systemPrompt: `${strictBase}
+  },
+  {
+    id: "avid-reader",
+    name: "Genre Critic",
+    description: "Compares with genre standards",
+    icon: "\u{1F4DA}",
+    systemPrompt: `${STRICT_BASE}
 
 Role: Genre Critic.
 Task: Identify clich\xE9s, derivative ideas, and tired tropes.
@@ -4743,6 +5306,274 @@ Analysis Focus:
 
 Output:
 3-5 points on where the text feels derivative or lazy.`
+  },
+  // --- Web & Marketing ---
+  {
+    id: "seo-specialist",
+    name: "SEO Specialist",
+    description: "Focuses on keyword density, headings structure, and readability.",
+    icon: "\u{1F50D}",
+    systemPrompt: `${STRICT_BASE}
+
+Role: SEO Specialist.
+Task: Analyze content for search engine optimization and scanability.
+
+Analysis Focus:
+- **Keywords**: Are they natural? Missing?
+- **Headings**: Is the H1-H2-H3 hierarchy logical?
+- **Scanability**: Are paragraphs short? Is there good use of lists?
+
+Output:
+3-5 actionable SEO improvements.`
+  },
+  {
+    id: "copywriter",
+    name: "Alpha Copywriter",
+    description: "Analyzes CTAs, hooks, and persuasive triggers.",
+    icon: "\u270D\uFE0F",
+    systemPrompt: `${STRICT_BASE}
+
+Role: Direct Response Copywriter.
+Task: Analyze persuasive writing elements and sales triggers.
+
+Analysis Focus:
+- **Hooks**: Does the opening grab attention immediately?
+- **CTAs**: Are calls-to-action clear and urgent?
+- **Benefits**: Do you focus on benefits, not features?
+
+Output:
+3-5 critiques on persuasive effectiveness.`
+  },
+  {
+    id: "social-media",
+    name: "Social Media Manager",
+    description: "Checks for viral hooks and engagement drivers.",
+    icon: "\u{1F426}",
+    systemPrompt: `${STRICT_BASE}
+
+Role: Social Media Manager.
+Task: Evaluate content for shareability and engagement.
+
+Analysis Focus:
+- **Hooks**: Is the first sentence tweetable?
+- **Engagement**: Does it ask questions or invite comment?
+- **formatting**: Is it too dense for mobile reading?
+
+Output:
+3-5 tips to increase engagement and viral potential.`
+  },
+  // --- Academic & Technical ---
+  {
+    id: "peer-reviewer",
+    name: "Peer Reviewer",
+    description: "Strict analysis of formal tone and weak citations.",
+    icon: "\u{1F393}",
+    systemPrompt: `${STRICT_BASE}
+
+Role: Academic Peer Reviewer.
+Task: Scrutinize compilation for formal rigor and precision.
+
+Analysis Focus:
+- **Tone**: Is it overly colloquial?
+- **Weasel Words**: Flag "some say", "many believe" without citation.
+- **Redundancy**: Cut unnecessary words mercilessly.
+
+Output:
+3-5 formal critiques on academic rigor.`
+  },
+  {
+    id: "grant-reviewer",
+    name: "Grant Reviewer",
+    description: "Evaluates impact statements and clarity of objectives.",
+    icon: "\u{1F4B0}",
+    systemPrompt: `${STRICT_BASE}
+
+Role: Grant Reviewer.
+Task: Evaluate the funding justification and project clarity.
+
+Analysis Focus:
+- **Impact**: Is the benefit concrete and measurable?
+- **Clarity**: Is the objective specific? (SMART goals)
+- **Urgency**: Why fund this NOW?
+
+Output:
+3-5 reasons a committee might reject this proposal.`
+  },
+  {
+    id: "docs-engineer",
+    name: "Docs Engineer",
+    description: "Focus on clarity for end-users and step-by-step logic.",
+    icon: "\u{1F6E0}\uFE0F",
+    systemPrompt: `${STRICT_BASE}
+
+Role: Documentation Engineer.
+Task: Ensure clarity/usability for the end-user.
+
+Analysis Focus:
+- **Logic**: Are steps sequential and complete?
+- **Ambiguity**: Are instructions open to interpretation?
+- **Troubleshooting**: Do you anticipate user errors?
+
+Output:
+3-5 usability barriers detected in the text.`
+  },
+  // --- Fiction & Creative ---
+  {
+    id: "screenwriter",
+    name: "Script Doctor",
+    description: `Focus on dialogue naturalism and "show, don't tell".`,
+    icon: "\u{1F3AC}",
+    systemPrompt: `${STRICT_BASE}
+
+Role: Screenwriter / Script Doctor.
+Task: Analyze dialogue and visual storytelling.
+
+Analysis Focus:
+- **Dialogue**: Is it "on the nose"? Does it sound spoken?
+- **Show, Don't Tell**: Are you describing emotions instead of showing actions?
+- **Pacing**: Does the scene drag?
+
+Output:
+3-5 notes on dialogue and scene dynamics.`
+  },
+  {
+    id: "sensitivity-reader",
+    name: "Sensitivity Reader",
+    description: "Flags potentially exclusionary language or stereotypes.",
+    icon: "\u2764\uFE0F",
+    systemPrompt: `${STRICT_BASE}
+
+Role: Sensitivity Reader.
+Task: Identify potential bias, stereotypes, or exclusionary language.
+
+Analysis Focus:
+- **Stereotypes**: Are characters relying on tired tropes?
+- **Inclusion**: Is language gender-neutral where appropriate?
+- **Impact**: Could this harm or alienate a specific group?
+
+Output:
+3-5 points on inclusivity and representation.`
+  },
+  {
+    id: "world-builder",
+    name: "World Builder",
+    description: "Checks for consistency in lore and internal logic.",
+    icon: "\u{1F30D}",
+    systemPrompt: `${STRICT_BASE}
+
+Role: World Builder.
+Task: Critique internal consistency and setting depth.
+
+Analysis Focus:
+- **Consistency**: Do rules/geography contradict earlier parts?
+- **Depth**: Does the world feel lived-in or cardboard?
+- **Exposition**: Is there too much info-dumping?
+
+Output:
+3-5 critiques on world logic and exposition.`
+  },
+  {
+    id: "childrens-editor",
+    name: "Children's Editor",
+    description: "Analyzes age-appropriateness and vocabulary.",
+    icon: "\u{1F9F8}",
+    systemPrompt: `${STRICT_BASE}
+
+Role: Children's Book Editor.
+Task: Ensure age-appropriateness and engagement for young readers.
+
+Analysis Focus:
+- **Vocabulary**: Is it too complex for the target age?
+- **Themes**: Are they appropriate?
+- **Rhythm**: (If picture book) Is the meter consistent?
+
+Output:
+3-5 notes on age-fit and readability.`
+  },
+  // --- Specialized ---
+  {
+    id: "translator",
+    name: "Localizer",
+    description: 'Checks for idioms and "false friends".',
+    icon: "\u{1F310}",
+    systemPrompt: `${STRICT_BASE}
+
+Role: Professional Localizer/Translator.
+Task: Identify translatability issues and cultural nuances.
+
+Analysis Focus:
+- **Idioms**: Phrases that won't translate literally.
+- **False Friends**: Words deceptive for non-native speakers.
+- **Culture**: References specific to one region.
+
+Output:
+3-5 localization risks or clarity issues.`
+  },
+  {
+    id: "speechwriter",
+    name: "Speechwriter",
+    description: "Analyzes rhythm, cadence, and rhetorical devices.",
+    icon: "\u{1F399}\uFE0F",
+    systemPrompt: `${STRICT_BASE}
+
+Role: Speechwriter.
+Task: Optimize text for EAR dominance (to be heard, not read).
+
+Analysis Focus:
+- **Rhythm**: Are sentences varied in length?
+- **Cadence**: Do pauses fall naturally?
+- **Rhetoric**: usage of anaphora, alliteration, tricolors.
+
+Output:
+3-5 notes on how the text sounds out loud.`
+  },
+  {
+    id: "ghostwriter",
+    name: "Ghostwriter",
+    description: "Checks for voice consistency.",
+    icon: "\u{1F47B}",
+    systemPrompt: `${STRICT_BASE}
+
+Role: Ghostwriter.
+Task: Maintain a consistent and authentic voice.
+
+Analysis Focus:
+- **Consistency**: Does the tone shift randomly?
+- **Authenticity**: Does it sound like a human or a committee?
+- **Signature**: Are the author's quirks present?
+
+Output:
+3-5 notes on voice consistency.`
+  }
+];
+
+// src/services/PersonaManager.ts
+var PersonaManager = class {
+  constructor(plugin) {
+    this.personas = /* @__PURE__ */ new Map();
+    this.isAnalyzingStatus = false;
+    this.currentAbortController = null;
+    this.currentTaskName = null;
+    this.currentProgress = 0;
+    this.pendingQueue = [];
+    this.plugin = plugin;
+    this.initializePersonas();
+    this.loadCustomPersonas();
+  }
+  loadCustomPersonas() {
+    const customs = this.plugin.settings.customPersonas || [];
+    customs.forEach((persona) => {
+      this.personas.set(persona.id, persona);
+    });
+  }
+  reloadPersonas() {
+    this.personas.clear();
+    this.initializePersonas();
+    this.loadCustomPersonas();
+  }
+  initializePersonas() {
+    BUILTIN_PERSONAS.forEach((p) => {
+      this.personas.set(p.id, p);
     });
   }
   /**
@@ -4752,15 +5583,33 @@ Output:
     return this.personas.get(id);
   }
   /**
-   * Get all available personas
+   * Get only ENABLED personas based on settings
    */
   listPersonas() {
+    const enabledIds = this.plugin.settings.enabledPersonas || [];
+    return Array.from(this.personas.values()).filter((p) => enabledIds.includes(p.id));
+  }
+  /**
+   * Get ALL registered personas (for settings UI)
+   */
+  listAllPersonas() {
     return Array.from(this.personas.values());
   }
   /**
    * Analyze text using a specific persona
    */
-  async analyzeText(personaId, text, language, onProgress) {
+  async analyzeText(personaId, text, language, onProgress, forceQueue = false) {
+    var _a, _b;
+    if (this.isAnalyzingStatus) {
+      const persona2 = this.getPersona(personaId);
+      const name = persona2 ? persona2.name : personaId;
+      if (forceQueue) {
+        return new Promise((resolve) => {
+          this.pendingQueue.push({ personaId, personaName: name, text, language, onProgress, resolve });
+        });
+      }
+      return { isBusy: true, personaName: name };
+    }
     const persona = this.getPersona(personaId);
     if (!persona) {
       return {
@@ -4780,6 +5629,8 @@ Output:
         error: "Ollama is disabled in settings"
       };
     }
+    this.isAnalyzingStatus = true;
+    this.currentAbortController = new AbortController();
     try {
       const CHUNK_SIZE = 12e3;
       const chunks = [];
@@ -4788,10 +5639,14 @@ Output:
       }
       const totalChunks = chunks.length;
       const analyses = [];
+      this.currentTaskName = persona.name;
+      this.currentProgress = 0;
       if (onProgress) onProgress("Initializing analysis...", 0);
       for (let i = 0; i < totalChunks; i++) {
         const chunk = chunks[i];
-        if (onProgress) onProgress(`Analyzing part ${i + 1} of ${totalChunks}...`, Math.round(i / totalChunks * 100));
+        const partPercent = Math.round(i / totalChunks * 100);
+        this.currentProgress = partPercent;
+        if (onProgress) onProgress(`Analyzing part ${i + 1} of ${totalChunks}...`, partPercent);
         const userPrompt = totalChunks > 1 ? `[PART ${i + 1}/${totalChunks}] Please analyze this segment. Focus on local issues within this text block:
 
 ${chunk}` : `Please analyze the following text:
@@ -4808,11 +5663,13 @@ CRITICAL INSTRUCTION: You use the persona defined above, BUT you MUST write your
         }
         const result = await this.plugin.ollamaService.generateCompletion(
           userPrompt,
-          { system: systemPrompt }
+          { system: systemPrompt },
+          (_a = this.currentAbortController) == null ? void 0 : _a.signal
         );
         analyses.push(result);
       }
       if (onProgress) onProgress("Finalizing...", 100);
+      this.currentProgress = 100;
       const finalAnalysis = totalChunks > 1 ? `**Note:** This text was analyzed in ${totalChunks} parts.
 
 ` + analyses.map((a, i) => `### Part ${i + 1} analysis
@@ -4824,14 +5681,107 @@ ${a}`).join("\n\n---\n\n") : analyses[0];
         analysis: finalAnalysis
       };
     } catch (error) {
-      console.error(`Persona analysis failed for ${personaId}:`, error);
+      if (error.name === "AbortError" || ((_b = error.message) == null ? void 0 : _b.includes("abort"))) {
+        return {
+          personaId,
+          personaName: persona.name,
+          timestamp: Date.now(),
+          analysis: "",
+          error: "Analysis cancelled by user"
+        };
+      }
+      console.error("Persona Analysis Error:", error);
       return {
         personaId,
         personaName: persona.name,
         timestamp: Date.now(),
         analysis: "",
-        error: error instanceof Error ? error.message : "Analysis failed"
+        error: error.message
       };
+    } finally {
+      this.isAnalyzingStatus = false;
+      this.currentAbortController = null;
+      this.currentTaskName = null;
+      this.currentProgress = 0;
+      void this.processQueue();
+    }
+  }
+  getStatus() {
+    return {
+      isBusy: this.isAnalyzingStatus,
+      taskName: this.currentTaskName,
+      progress: this.currentProgress
+    };
+  }
+  getQueue() {
+    return this.pendingQueue.map((t, i) => ({
+      index: i,
+      personaName: t.personaName
+    }));
+  }
+  cancelQueuedTask(index) {
+    if (index >= 0 && index < this.pendingQueue.length) {
+      const task = this.pendingQueue.splice(index, 1)[0];
+      task.resolve({
+        personaId: task.personaId,
+        personaName: task.personaName,
+        timestamp: Date.now(),
+        analysis: "",
+        error: "Queued task removed by user"
+      });
+    }
+  }
+  /**
+   * Cancels the current analysis task
+   */
+  cancelAnalysis() {
+    if (this.currentAbortController) {
+      this.currentAbortController.abort();
+      this.currentAbortController = null;
+    }
+    this.isAnalyzingStatus = false;
+    this.pendingQueue = [];
+  }
+  async processQueue() {
+    if (this.pendingQueue.length === 0 || this.isAnalyzingStatus) return;
+    const nextTask = this.pendingQueue.shift();
+    if (nextTask) {
+      const result = await this.analyzeText(
+        nextTask.personaId,
+        nextTask.text,
+        nextTask.language,
+        nextTask.onProgress
+      );
+      nextTask.resolve(result);
+    }
+  }
+  /**
+   * Specialized analysis for background triggers (silent, no file creation notice)
+   */
+  async backgroundAnalyze(personaId, text, language) {
+    const persona = this.getPersona(personaId);
+    if (!persona || this.isAnalyzingStatus) return null;
+    this.isAnalyzingStatus = true;
+    try {
+      let systemPrompt = persona.systemPrompt;
+      if (language && language !== "auto") {
+        systemPrompt += `
+
+CRITICAL INSTRUCTION: You use the persona defined above, BUT you MUST write your response in ${this.getLanguageName(language)}. Do not verify the user's language, just output in ${this.getLanguageName(language)}.`;
+      }
+      const result = await this.plugin.ollamaService.generateCompletion(
+        `Briefly analyze this text and provide 3 focal points for improvement:
+
+${text.slice(-5e3)}`,
+        // Only look at last 5k chars for background speed
+        { system: systemPrompt }
+      );
+      return result;
+    } catch (error) {
+      console.error("Background analysis failed:", error);
+      return null;
+    } finally {
+      this.isAnalyzingStatus = false;
     }
   }
   getLanguageName(code) {
@@ -4847,7 +5797,7 @@ ${a}`).join("\n\n---\n\n") : analyses[0];
 };
 
 // src/services/LongformService.ts
-var import_obsidian7 = require("obsidian");
+var import_obsidian13 = require("obsidian");
 var LongformService = class {
   constructor(app) {
     this.app = app;
@@ -4904,12 +5854,12 @@ var LongformService = class {
     for (const sceneName of project.scenes) {
       let file = this.app.vault.getAbstractFileByPath(sceneName);
       if (!file && !sceneName.endsWith(".md")) {
-        file = this.app.vault.getAbstractFileByPath((0, import_obsidian7.normalizePath)(`${projectDir}/${sceneName}.md`));
+        file = this.app.vault.getAbstractFileByPath((0, import_obsidian13.normalizePath)(`${projectDir}/${sceneName}.md`));
       }
       const allFiles = this.app.vault.getMarkdownFiles();
       const found = allFiles.find((f) => f.basename === sceneName || f.name === sceneName);
       if (found) file = found;
-      if (file instanceof import_obsidian7.TFile) {
+      if (file instanceof import_obsidian13.TFile) {
         const content = await this.app.vault.read(file);
         fullText += `
 
@@ -5016,7 +5966,12 @@ ${translation}`;
 };
 
 // src/main.ts
-var SmartWriteCompanionPlugin = class extends import_obsidian8.Plugin {
+var SmartWriteCompanionPlugin = class extends import_obsidian14.Plugin {
+  constructor() {
+    super(...arguments);
+    this.wordsSinceLastBackgroundAnalysis = 0;
+    this.lastBackgroundResult = null;
+  }
   async onload() {
     await this.loadSettings();
     this.textAnalyzer = new TextAnalyzer();
@@ -5071,13 +6026,13 @@ var SmartWriteCompanionPlugin = class extends import_obsidian8.Plugin {
       }
     });
     this.registerEvent(
-      this.app.workspace.on("editor-change", (0, import_obsidian8.debounce)((editor, view) => {
+      this.app.workspace.on("editor-change", (0, import_obsidian14.debounce)((editor, view) => {
         this.onEditorChange(editor, view);
       }, 300))
     );
     this.registerEvent(
       this.app.workspace.on("active-leaf-change", (leaf) => {
-        if (leaf && leaf.view instanceof import_obsidian8.MarkdownView) {
+        if (leaf && leaf.view instanceof import_obsidian14.MarkdownView) {
           this.sessionTracker.resetFileBaseline();
           void this.analyzeAndUpdate(leaf.view.editor.getValue());
         }
@@ -5085,7 +6040,7 @@ var SmartWriteCompanionPlugin = class extends import_obsidian8.Plugin {
     );
     this.registerEvent(
       this.app.workspace.on("file-open", () => {
-        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
+        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian14.MarkdownView);
         if (activeView) {
           void this.analyzeAndUpdate(activeView.editor.getValue());
         }
@@ -5093,7 +6048,7 @@ var SmartWriteCompanionPlugin = class extends import_obsidian8.Plugin {
     );
   }
   onunload() {
-    this.sessionTracker.endSession();
+    void this.sessionTracker.endSession();
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -5118,7 +6073,7 @@ var SmartWriteCompanionPlugin = class extends import_obsidian8.Plugin {
     }
     if (leaf) {
       workspace.revealLeaf(leaf);
-      const activeView = workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
+      const activeView = workspace.getActiveViewOfType(import_obsidian14.MarkdownView);
       if (activeView) {
         await this.analyzeAndUpdate(activeView.editor.getValue());
       }
@@ -5126,7 +6081,7 @@ var SmartWriteCompanionPlugin = class extends import_obsidian8.Plugin {
   }
   onEditorChange(editor, _view) {
     const text = editor.getValue();
-    this.analyzeAndUpdate(text);
+    void this.analyzeAndUpdate(text);
   }
   async analyzeAndUpdate(text) {
     try {
@@ -5138,7 +6093,7 @@ var SmartWriteCompanionPlugin = class extends import_obsidian8.Plugin {
       const suggestions = await this.suggestionEngine.analyze(text, metrics);
       const readability = this.readabilityEngine.calculateScores(metrics, lang);
       this.sessionTracker.updateWords(stats.wordCount);
-      const activeView = this.app.workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
+      const activeView = this.app.workspace.getActiveViewOfType(import_obsidian14.MarkdownView);
       if (activeView) {
         const cm = activeView.editor.cm;
         if (cm) {
@@ -5146,9 +6101,36 @@ var SmartWriteCompanionPlugin = class extends import_obsidian8.Plugin {
         }
       }
       this.updateSidebar(stats, suggestions, readability);
+      this.handleBackgroundAnalysisTrigger(text);
     } catch (error) {
       console.error("Error analyzing text:", error);
     }
+  }
+  handleBackgroundAnalysisTrigger(content) {
+    if (!this.settings.backgroundAnalysisEnabled || !this.settings.ollamaEnabled) return;
+    this.wordsSinceLastBackgroundAnalysis++;
+    if (this.wordsSinceLastBackgroundAnalysis >= this.settings.backgroundAnalysisThreshold) {
+      this.wordsSinceLastBackgroundAnalysis = 0;
+      void this.runBackgroundAnalysis(content);
+    }
+  }
+  async runBackgroundAnalysis(content) {
+    const result = await this.personaManager.backgroundAnalyze(
+      this.settings.selectedPersona,
+      content,
+      this.settings.outputLanguage
+    );
+    if (result) {
+      this.lastBackgroundResult = result;
+      this.app.workspace.getLeavesOfType("smartwrite-sidebar").forEach((leaf) => {
+        if (leaf.view instanceof SidebarView) {
+          leaf.view.updateBackgroundAnalysis(result);
+        }
+      });
+    }
+  }
+  getLastBackgroundResult() {
+    return this.lastBackgroundResult;
   }
   updateSidebar(stats, suggestions, readability) {
     const leaves = this.app.workspace.getLeavesOfType("smartwrite-sidebar");
@@ -5173,7 +6155,7 @@ var SmartWriteCompanionPlugin = class extends import_obsidian8.Plugin {
     if (leaves.length > 0) {
       this.app.workspace.detachLeavesOfType("smartwrite-sidebar");
     } else {
-      this.activateView();
+      void this.activateView();
     }
   }
 };
