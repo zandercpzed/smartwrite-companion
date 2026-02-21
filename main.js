@@ -2743,7 +2743,7 @@ var SmartWriteSettingTab = class extends import_obsidian2.PluginSettingTab {
     new import_obsidian2.Setting(containerEl).setName("User personas").setHeading();
     const personasContainer = containerEl.createDiv({ cls: "smartwrite-custom-personas-container" });
     this.renderCustomPersonasSection(personasContainer);
-    new import_obsidian2.Setting(containerEl).setName("Available personas (Sidebar)").setHeading();
+    new import_obsidian2.Setting(containerEl).setName("Available personas (sidebar)").setHeading();
     const enabledPersonasContainer = containerEl.createDiv({ cls: "smartwrite-enabled-personas-container" });
     this.renderEnabledPersonasSection(enabledPersonasContainer);
   }
@@ -2751,17 +2751,12 @@ var SmartWriteSettingTab = class extends import_obsidian2.PluginSettingTab {
     container.empty();
     container.createDiv({
       cls: "smartwrite-suggestion-description smartwrite-mb-12",
-      text: 'Choose which personas appear in the sidebar dropdown. Enabled personas will also be used in the "Analyze with ALL" feature.'
+      text: 'Choose which personas appear in the sidebar dropdown. Enabled personas will also be used in the "Analyze with all enabled personas" feature.'
     });
     const personas = this.plugin.personaManager.listAllPersonas();
-    const listContainer = container.createDiv({ cls: "smartwrite-persona-selection-list" });
     personas.forEach((persona) => {
-      const row = listContainer.createDiv({ cls: "smartwrite-persona-selection-row-full" });
-      const left = row.createDiv({ cls: "smartwrite-persona-selection-left" });
-      const checkbox = left.createEl("input", { type: "checkbox" });
-      checkbox.checked = this.plugin.settings.enabledPersonas.includes(persona.id);
-      checkbox.addEventListener("change", async () => {
-        if (checkbox.checked) {
+      new import_obsidian2.Setting(container).setName(`${persona.icon} ${persona.name}`).setDesc(persona.description).addToggle((toggle) => toggle.setValue(this.plugin.settings.enabledPersonas.includes(persona.id)).onChange(async (value) => {
+        if (value) {
           if (!this.plugin.settings.enabledPersonas.includes(persona.id)) {
             this.plugin.settings.enabledPersonas.push(persona.id);
           }
@@ -2769,17 +2764,13 @@ var SmartWriteSettingTab = class extends import_obsidian2.PluginSettingTab {
           this.plugin.settings.enabledPersonas = this.plugin.settings.enabledPersonas.filter((id) => id !== persona.id);
         }
         await this.plugin.saveSettings();
-      });
-      const right = row.createDiv({ cls: "smartwrite-persona-selection-info" });
-      const titleRow = right.createDiv({ cls: "smartwrite-persona-selection-title" });
-      titleRow.createSpan({ text: `${persona.icon} ${persona.name}`, cls: "smartwrite-fw-bold" });
-      right.createDiv({ text: persona.description, cls: "smartwrite-persona-selection-desc" });
+      }));
     });
   }
   renderCustomPersonasSection(container) {
     container.empty();
-    const addSetting = new import_obsidian2.Setting(container).setName("Create new persona").setDesc("Define a custom persona for your writing analysis.").addButton((btn) => btn.setButtonText("Add persona").setCta().onClick(() => {
-      new PersonaEditorModal(this.app, null, async (persona) => {
+    new import_obsidian2.Setting(container).setName("Create new persona").setDesc("Define a custom persona for your writing analysis.").addButton((btn) => btn.setButtonText("Add persona").setCta().onClick(() => {
+      new PersonaEditorModal(this.plugin.app, null, async (persona) => {
         this.plugin.settings.customPersonas.push(persona);
         await this.plugin.saveSettings();
         this.plugin.personaManager.reloadPersonas();
@@ -2793,33 +2784,22 @@ var SmartWriteSettingTab = class extends import_obsidian2.PluginSettingTab {
       });
       return;
     }
-    const listDiv = container.createDiv({ cls: "smartwrite-custom-personas-list" });
     this.plugin.settings.customPersonas.forEach((persona, index) => {
-      const personaRow = listDiv.createDiv({ cls: "smartwrite-model-row" });
-      const info = personaRow.createDiv({ cls: "model-info smartwrite-flex-1" });
-      info.createDiv({ cls: "model-name smartwrite-fw-bold" }).setText(`${persona.icon} ${persona.name}`);
-      info.createDiv({ cls: "model-meta" }).setText(persona.description);
-      const actions = personaRow.createDiv({ cls: "model-actions" });
-      const editBtn = actions.createEl("button", { cls: "clickable-icon" });
-      (0, import_obsidian2.setIcon)(editBtn, "pencil");
-      editBtn.addEventListener("click", () => {
+      new import_obsidian2.Setting(container).setName(`${persona.icon} ${persona.name}`).setDesc(persona.description).addExtraButton((btn) => btn.setIcon("pencil").setTooltip("Edit persona").onClick(() => {
         new PersonaEditorModal(this.app, persona, async (updatedPersona) => {
           this.plugin.settings.customPersonas[index] = updatedPersona;
           await this.plugin.saveSettings();
           this.plugin.personaManager.reloadPersonas();
           this.renderCustomPersonasSection(container);
         }).open();
-      });
-      const deleteBtn = actions.createEl("button", { cls: "clickable-icon destructive" });
-      (0, import_obsidian2.setIcon)(deleteBtn, "trash");
-      deleteBtn.addEventListener("click", () => {
+      })).addExtraButton((btn) => btn.setIcon("trash").setTooltip("Delete persona").onClick(() => {
         new ConfirmationModal(this.app, `Remove persona "${persona.name}"?`, async () => {
           this.plugin.settings.customPersonas.splice(index, 1);
           await this.plugin.saveSettings();
           this.plugin.personaManager.reloadPersonas();
           this.renderCustomPersonasSection(container);
         }).open();
-      });
+      }));
     });
   }
   async renderModelsSection(container) {
@@ -2833,8 +2813,7 @@ var SmartWriteSettingTab = class extends import_obsidian2.PluginSettingTab {
     ];
     const isConnected = await this.plugin.ollamaService.checkConnection();
     if (!isConnected) {
-      const errorDiv = container.createDiv({ cls: "smartwrite-setting-error smartwrite-error-box" });
-      errorDiv.setText("\u26A0\uFE0F Ollama is not connected. Please start Ollama to manage your models.");
+      new import_obsidian2.Setting(container).setName("Ollama connection").setDesc("\u26A0\uFE0F Ollama is not connected. Please start Ollama to manage your models.").addButton((btn) => btn.setButtonText("Retry").onClick(() => this.renderModelsSection(container)));
       return;
     }
     const installedModels = await this.plugin.ollamaService.listModels();
@@ -2842,30 +2821,18 @@ var SmartWriteSettingTab = class extends import_obsidian2.PluginSettingTab {
     for (const model of RECOMMENDED_MODELS) {
       const isInstalled = installedNames.has(model.id) || installedNames.has(`${model.id}:latest`);
       const isSelected = this.plugin.settings.ollamaModel === model.id;
-      const modelRow = container.createDiv({ cls: "smartwrite-model-row smartwrite-model-item" });
-      const infoDiv = modelRow.createDiv({ cls: "model-info smartwrite-flex-1" });
-      const nameEl = infoDiv.createDiv({ cls: "model-name smartwrite-fw-bold smartwrite-f13" });
-      nameEl.setText(model.name);
-      if (isSelected) {
-        nameEl.createSpan({ text: " (active)", cls: "smartwrite-model-active-badge" });
-      }
-      infoDiv.createDiv({ cls: "model-meta smartwrite-model-info-meta" }).setText(`${model.id} \u2022 ${model.size} \u2022 ${model.desc}`);
-      const actionsDiv = modelRow.createDiv({ cls: "model-actions smartwrite-model-row-actions" });
+      const s = new import_obsidian2.Setting(container).setName(model.name + (isSelected ? " (active)" : "")).setDesc(`${model.id} \u2022 ${model.size} \u2022 ${model.desc}`);
       if (isInstalled) {
         if (!isSelected) {
-          const selectBtn = actionsDiv.createEl("button", { text: "Select" });
-          selectBtn.addEventListener("click", () => {
+          s.addButton((btn) => btn.setButtonText("Select").onClick(async () => {
             this.plugin.settings.ollamaModel = model.id;
-            void this.plugin.saveSettings();
+            await this.plugin.saveSettings();
             new import_obsidian2.Notice(`Selected model: ${model.name}`);
-            void this.renderModelsSection(container);
-          });
+            this.renderModelsSection(container);
+          }));
         }
-        const deleteBtn = actionsDiv.createEl("button", { cls: "clickable-icon destructive smartwrite-model-delete-btn" });
-        (0, import_obsidian2.setIcon)(deleteBtn, "trash");
-        deleteBtn.setAttribute("aria-label", "Uninstall model");
-        deleteBtn.addEventListener("click", () => {
-          new ConfirmationModal(this.app, `Are you sure you want to uninstall ${model.name}?`, async () => {
+        s.addExtraButton((btn) => btn.setIcon("trash").setTooltip("Uninstall model").onClick(() => {
+          new ConfirmationModal(this.app, `Uninstall ${model.name}?`, async () => {
             new import_obsidian2.Notice(`Uninstalling ${model.name}...`);
             const success = await this.plugin.ollamaService.deleteModel(model.id);
             if (success) {
@@ -2874,38 +2841,36 @@ var SmartWriteSettingTab = class extends import_obsidian2.PluginSettingTab {
                 this.plugin.settings.ollamaModel = "";
                 await this.plugin.saveSettings();
               }
-              await this.renderModelsSection(container);
+              this.renderModelsSection(container);
             } else {
               new import_obsidian2.Notice("Failed to uninstall model.");
             }
           }).open();
-        });
+        }));
       } else {
-        const installBtn = actionsDiv.createEl("button", { text: "Install", cls: "mod-cta" });
-        installBtn.addEventListener("click", async () => {
-          installBtn.setText("Installing...");
-          installBtn.disabled = true;
+        s.addButton((btn) => btn.setButtonText("Install").setCta().onClick(async () => {
+          btn.setButtonText("Installing...");
+          btn.setDisabled(true);
           new import_obsidian2.Notice(`Installing ${model.name}. This may take a while...`);
           const success = await this.plugin.ollamaService.pullModel(model.id, (progress) => {
             if (progress.status === "downloading" && progress.percent) {
-              installBtn.setText(`${progress.percent}%`);
+              btn.setButtonText(`${progress.percent}%`);
             } else {
-              installBtn.setText(progress.status);
+              btn.setButtonText(progress.status);
             }
           });
           if (success) {
-            new import_obsidian2.Notice(`${model.name} installed successfully!`);
+            new import_obsidian2.Notice(`${model.name} installed!`);
             if (!this.plugin.settings.ollamaModel) {
               this.plugin.settings.ollamaModel = model.id;
               await this.plugin.saveSettings();
             }
             this.renderModelsSection(container);
           } else {
-            new import_obsidian2.Notice("Installation failed. Check console for details.");
-            installBtn.setText("Install");
-            installBtn.disabled = false;
+            new import_obsidian2.Notice("Installation failed.");
+            this.renderModelsSection(container);
           }
-        });
+        }));
       }
     }
   }
@@ -3485,7 +3450,7 @@ var PersonaPanel = class extends BasePanel {
     });
     const personas = this.plugin.personaManager.listPersonas();
     const select = selectorSection.createEl("select", { cls: "dropdown" });
-    const allOption = select.createEl("option", { value: "all-enabled", text: "\u{1F680} Analyze with ALL enabled personas" });
+    const allOption = select.createEl("option", { value: "all-enabled", text: "\u{1F680} Analyze with all enabled personas" });
     if (this.plugin.settings.selectedPersona === "all-enabled") allOption.selected = true;
     personas.forEach((persona) => {
       const option = select.createEl("option", { value: persona.id });
@@ -3513,7 +3478,7 @@ var PersonaPanel = class extends BasePanel {
     });
     const langSelect = langContainer.createEl("select", { cls: "smartwrite-w100 smartwrite-mb-15" });
     const languages = [
-      { value: "auto", label: "Auto (Match Input)" },
+      { value: "auto", label: "Auto (match input)" },
       { value: "pt-br", label: "Portuguese (BR)" },
       { value: "en-us", label: "English (US)" },
       { value: "es", label: "Spanish" },
@@ -3537,7 +3502,7 @@ var PersonaPanel = class extends BasePanel {
     });
     const progressMeter = actionButton.createDiv({ cls: "smartwrite-progress-meter" });
     const stopButton = actionButtonContainer.createEl("button", {
-      text: "Stop Analysis",
+      text: "Stop analysis",
       cls: "smartwrite-stop-btn is-hidden"
     });
     stopButton.addEventListener("click", () => {
@@ -3583,7 +3548,7 @@ var PersonaPanel = class extends BasePanel {
     if (!bgContainer) return;
     bgContainer.empty();
     bgContainer.removeClass("is-hidden");
-    bgContainer.createDiv({ cls: "smartwrite-section-heading", text: "\u{1F4A1} Live Feedback" });
+    bgContainer.createDiv({ cls: "smartwrite-section-heading", text: "\u{1F4A1} Live feedback" });
     const content = bgContainer.createDiv({ cls: "smartwrite-suggestion-description smartwrite-mb-12" });
     content.setText(result);
     const syncBtn = bgContainer.createEl("button", {
@@ -4082,7 +4047,7 @@ var SidebarView = class extends import_obsidian11.ItemView {
     this.createSettingToggle(this.settingsPanel, "Persona analysis", "showPersona");
     const statusBtnRow = this.settingsPanel.createDiv({ cls: "smartwrite-setting-row smartwrite-mt-8" });
     const statusBtn = statusBtnRow.createEl("button", {
-      text: "\u{1F4CA} Analysis Status & Queue",
+      text: "\u{1F4CA} Analysis status & queue",
       cls: "smartwrite-w100 smartwrite-status-trigger-btn"
     });
     statusBtn.addEventListener("click", () => {

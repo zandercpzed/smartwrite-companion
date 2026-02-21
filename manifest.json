@@ -1,9 +1,9 @@
 {
   "id": "smartwrite-companion",
   "name": "SmartWrite Companion",
-  "version": "0.8.16",
+  "version": "0.8.18",
   "minAppVersion": "1.0.0",
-  "description": "An intelligent writing assistant with real-time statistics, readability analysis, and AI-powered persona feedback.",
+  "description": "Intelligent writing assistant with real-time statistics, readability analysis, and local AI-powered persona feedback.",
   "author": "Zander Catta Preta",
   "authorUrl": "https://github.com/zandercpzed",
   "isDesktopOnly": false
