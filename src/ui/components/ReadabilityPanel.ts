@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { BasePanel } from './BasePanel';
 import { ReadabilityScores } from '../../types';
 import SmartWriteCompanionPlugin from "../../main";

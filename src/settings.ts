@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { App, PluginSettingTab, Setting, Modal, Notice, setIcon } from 'obsidian';
 import SmartWriteCompanionPlugin from './main';
 

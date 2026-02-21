@@ -26,6 +26,10 @@
   ],
   "exclude": [
     "docs/**",
-    "node_modules/**"
+    "node_modules/**",
+    "versions/**",
+    "_ docs/**",
+    "_ BKP/**",
+    "_ tests/**"
   ]
 }

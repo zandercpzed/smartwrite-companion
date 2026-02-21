@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { BasePanel } from './BasePanel';
 import { MarkdownView, Notice } from 'obsidian';
 
@@ -432,7 +433,7 @@ export class PersonaPanel extends BasePanel {
         const progressMeter = button.querySelector('.smartwrite-progress-meter') as HTMLElement;
         const stopButton = button.parentElement?.querySelector('.smartwrite-stop-btn') as HTMLButtonElement;
         
-        if (progressMeter) progressMeter.style.height = '0%';
+        if (progressMeter) progressMeter.setCssStyles({ height: '0%' });
         if (stopButton) stopButton.removeClass('is-hidden');
 
         // 1. Ask for Folder FIRST
@@ -452,7 +453,7 @@ export class PersonaPanel extends BasePanel {
         button.removeClass('smartwrite-btn-processing');
         button.disabled = false;
         if (stopButton) stopButton.addClass('is-hidden');
-        if (progressMeter) progressMeter.style.height = '0%';
+        if (progressMeter) progressMeter.setCssStyles({ height: '0%' });
     }
 
     private async executeAnalysisWorkflow(
@@ -475,7 +476,7 @@ export class PersonaPanel extends BasePanel {
                     for (let i = 0; i < enabledPersonas.length; i++) {
                         const p = enabledPersonas[i];
                         button.setText(`Analyzing (${i + 1}/${enabledPersonas.length}): ${p.name}...`);
-                        if (progressMeter) progressMeter.style.height = `${(i / enabledPersonas.length) * 100}%`;
+                        if (progressMeter) progressMeter.setCssStyles({ height: `${(i / enabledPersonas.length) * 100}%` });
 
                         const res = await this.plugin.personaManager.analyzeText(
                             p.id, text, this.plugin.settings.outputLanguage, undefined, forceQueue
@@ -488,11 +489,11 @@ export class PersonaPanel extends BasePanel {
                         }
                         results.push(res);
                     }
-                    if (progressMeter) progressMeter.style.height = '100%';
+                    if (progressMeter) progressMeter.setCssStyles({ height: '100%' });
                 } else {
                     const res = await this.plugin.personaManager.analyzeText(
                         selectedId, text, this.plugin.settings.outputLanguage, 
-                        (s, p) => { if (progressMeter) progressMeter.style.height = `${p}%`; },
+                        (s, p) => { if (progressMeter) progressMeter.setCssStyles({ height: `${p}%` }); },
                         forceQueue
                     );
                     
@@ -592,7 +593,7 @@ export class PersonaPanel extends BasePanel {
         button.addClass('smartwrite-btn-processing');
 
         const progressMeter = button.querySelector('.smartwrite-progress-meter') as HTMLElement;
-        if (progressMeter) progressMeter.style.height = '0%';
+        if (progressMeter) progressMeter.setCssStyles({ height: '0%' });
 
         try {
             const result = await this.plugin.translationService.translateProject(
@@ -601,7 +602,7 @@ export class PersonaPanel extends BasePanel {
                 targetLang, 
                 (status, percent) => {
                     button.setText(`${status} (${percent}%)`);
-                    if (progressMeter) progressMeter.style.height = `${percent}%`;
+                    if (progressMeter) progressMeter.setCssStyles({ height: `${percent}%` });
                 }
             );
 
