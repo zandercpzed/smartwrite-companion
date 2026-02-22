@@ -23,3 +23,10 @@ styles.css
 .claudecode
 projeto/\n# Ignore projeto directory
 projeto/
+
+# Z•Edições Backup Folders
+_bkp*
+_BKP*
+_ bkp*
+_ BKP*
+
