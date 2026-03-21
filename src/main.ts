@@ -106,7 +106,7 @@ export default class SmartWriteCompanionPlugin extends Plugin {
 
         // Register editor change event with debounce
         this.registerEvent(
-            this.app.workspace.on('editor-change', debounce((editor: MarkdownView['editor'], view: MarkdownView) => {
+            (this.app.workspace as any).on('editor-change', debounce((editor: MarkdownView['editor'], view: MarkdownView) => {
                 this.onEditorChange(editor, view);
             }, 300))
         );

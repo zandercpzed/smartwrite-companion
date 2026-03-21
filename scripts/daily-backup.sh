@@ -40,6 +40,9 @@ zip -r "$BACKUP_FILE" . \
     -x "node_modules/*" \
     -x ".git/*" \
     -x ".claude/*" \
+    -x "versions/*" \
+    -x "_ BKP/*" \
+    -x "_ docs/versions/*" \
     -x "temp-obsidian-submission/*" \
     -x "temp_check/*" \
     -x "*.DS_Store" \

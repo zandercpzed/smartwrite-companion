@@ -5,7 +5,7 @@ import { Suggestion } from '../types';
 const addSuggestions = StateEffect.define<Suggestion[]>();
 const clearSuggestions = StateEffect.define<void>();
 
-export const suggestionField = StateField.define<DecorationSet>({
+const suggestionField = StateField.define<DecorationSet>({
     create() {
         return Decoration.none;
     },
